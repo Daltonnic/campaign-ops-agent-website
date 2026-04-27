@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Campaign Ops Agent — AI-Powered Campaign Command Center</title>
+  <meta name="description" content="Campaign Ops Agent gives your team AI-powered briefs, opposition research, rapid response drafts, and real-time task management — built for the speed of a campaign." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: #0a0a0b;
+      color: #f0efec;
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    ::selection { background: rgba(232,54,43,0.3); color: #f0efec; }
+    input, select, textarea {
+      font-family: 'JetBrains Mono', monospace;
+      color: #f0efec;
+    }
+    input::placeholder, textarea::placeholder { color: #3a3a42; }
+    select option { background: #18181c; color: #f0efec; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0a0a0b; }
+    ::-webkit-scrollbar-thumb { background: #2a2a30; }
+    ::-webkit-scrollbar-thumb:hover { background: #3a3a42; }
+    .page-enter { animation: fadeSlide 0.2s ease forwards; }
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+// ─────────────────────────────────────────────
+// DESIGN TOKENS
+// ─────────────────────────────────────────────
+const COLORS = {
+  bg:       '#0a0a0b',
+  surface:  '#111113',
+  surface2: '#18181c',
+  surface3: '#222228',
+  border:   '#2a2a30',
+  text:     '#f0efec',
+  muted:    '#d0d0d8',
+  dim:      '#9a9aa6',
+  accent:   '#e8362b',
+  gold:     '#c9a235',
+};
+const C = COLORS;
+
+const FONTS = {
+  display: "'Bebas Neue', sans-serif",
+  mono:    "'JetBrains Mono', monospace",
+  body:    "'Inter', sans-serif",
+};
+const F = FONTS;
+
+// ─────────────────────────────────────────────
+// HOOKS
+// ─────────────────────────────────────────────
+function useWindowWidth() {
+  const [width, setWidth] = React.useState(window.innerWidth);
+  React.useEffect(() => {
+    const h = () => setWidth(window.innerWidth);
+    window.addEventListener('resize', h);
+    return () => window.removeEventListener('resize', h);
+  }, []);
+  return width;
+}
+
+function useResponsive() {
+  const w = useWindowWidth();
+  return { isMobile: w < 768, isTablet: w >= 768 && w < 1100, isDesktop: w >= 1100, width: w };
+}
+
+// ─────────────────────────────────────────────
+// SHARED COMPONENTS
+// ─────────────────────────────────────────────
+function Logo({ size = 32 }) {
+  return (
+    <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+      <div style={{
+        width:size, height:size,
+        background:`linear-gradient(135deg,${C.accent} 0%,${C.gold} 100%)`,
+        display:'flex', alignItems:'center', justifyContent:'center',
+        fontSize:size*0.45, fontFamily:F.display, color:'#fff', flexShrink:0,
+      }}>CO</div>
+      <span style={{
+        fontFamily:F.display, fontSize:size*0.72,
+        letterSpacing:'0.15em', color:C.text, lineHeight:1,
+      }}>CAMPAIGN OPS AGENT</span>
+    </div>
+  );
+}
+
+function Nav({ currentPage, navigate }) {
+  const [scrolled, setScrolled] = React.useState(false);
+  const [menuOpen, setMenuOpen] = React.useState(false);
+  const { isMobile } = useResponsive();
+
+  React.useEffect(() => {
+    const fn = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', fn);
+    return () => window.removeEventListener('scroll', fn);
+  }, []);
+
+  React.useEffect(() => { setMenuOpen(false); }, [currentPage]);
+
+  const links = [
+    { label:'Home', page:'home' },
+    { label:'Features', page:'features' },
+    { label:'How It Works', page:'how-it-works' },
+    { label:'About', page:'about' },
+  ];
+
+  const lk = (page) => ({
+    fontFamily:F.mono, fontSize:13, letterSpacing:'0.08em',
+    color: currentPage === page ? C.text : C.muted,
+    textDecoration:'none', textTransform:'uppercase', cursor:'pointer',
+    padding:'4px 0',
+    borderBottom: currentPage === page ? `1px solid ${C.accent}` : '1px solid transparent',
+    transition:'color 0.15s', display:'block',
+  });
+
+  return (
+    <nav style={{
+      position:'fixed', top:0, left:0, right:0, zIndex:200,
+      background: (scrolled||menuOpen) ? 'rgba(10,10,11,0.98)' : 'transparent',
+      borderBottom: (scrolled||menuOpen) ? `1px solid ${C.border}` : '1px solid transparent',
+      transition:'all 0.2s ease',
+      backdropFilter: (scrolled||menuOpen) ? 'blur(12px)' : 'none',
+    }}>
+      <div style={{
+        maxWidth:1280, margin:'0 auto', padding:'0 24px',
+        display:'flex', alignItems:'center', justifyContent:'space-between', height:64,
+      }}>
+        <div style={{ cursor:'pointer' }} onClick={() => navigate('home')}>
+          <Logo size={isMobile ? 24 : 28} />
+        </div>
+
+        {isMobile ? (
+          <button onClick={() => setMenuOpen(o => !o)} style={{
+            background:'none', border:'none', cursor:'pointer',
+            padding:8, display:'flex', flexDirection:'column', gap:5, alignItems:'flex-end',
+          }}>
+            <div style={{ width:24, height:1.5, background: menuOpen ? C.accent : C.text, transition:'all 0.2s', transform: menuOpen ? 'rotate(45deg) translate(4px,4px)' : 'none' }} />
+            <div style={{ width: menuOpen ? 0 : 18, height:1.5, background:C.text, transition:'all 0.2s' }} />
+            <div style={{ width:24, height:1.5, background: menuOpen ? C.accent : C.text, transition:'all 0.2s', transform: menuOpen ? 'rotate(-45deg) translate(4px,-4px)' : 'none' }} />
+          </button>
+        ) : (
+          <div style={{ display:'flex', gap:36, alignItems:'center' }}>
+            {links.map(l => (
+              <span key={l.page} style={lk(l.page)} onClick={() => navigate(l.page)}
+                onMouseEnter={e => e.target.style.color = C.text}
+                onMouseLeave={e => e.target.style.color = currentPage === l.page ? C.text : C.muted}
+              >{l.label}</span>
+            ))}
+            <span style={{ fontFamily:F.mono, fontSize:13, color:C.muted, cursor:'pointer', letterSpacing:'0.08em', textTransform:'uppercase' }}
+              onClick={() => navigate('login')}
+              onMouseEnter={e => e.target.style.color = C.text}
+              onMouseLeave={e => e.target.style.color = C.muted}
+            >Login</span>
+            <button onClick={() => navigate('request-access')} style={{
+              background:C.accent, color:'#fff', border:'none', padding:'9px 20px',
+              fontFamily:F.mono, fontSize:13, letterSpacing:'0.08em',
+              textTransform:'uppercase', cursor:'pointer', transition:'opacity 0.15s',
+            }}
+              onMouseEnter={e => e.target.style.opacity='0.85'}
+              onMouseLeave={e => e.target.style.opacity='1'}
+            >Request Access →</button>
+          </div>
+        )}
+      </div>
+
+      {isMobile && menuOpen && (
+        <div style={{
+          background:'rgba(10,10,11,0.99)', borderTop:`1px solid ${C.border}`,
+          padding:'24px', display:'flex', flexDirection:'column', gap:0,
+        }}>
+          {[...links, { label:'Login', page:'login' }].map(l => (
+            <div key={l.page} onClick={() => navigate(l.page)} style={{
+              fontFamily:F.mono, fontSize:15, letterSpacing:'0.1em',
+              color: currentPage === l.page ? C.accent : C.text,
+              textTransform:'uppercase', cursor:'pointer',
+              padding:'18px 0', borderBottom:`1px solid ${C.border}`,
+            }}>{l.label}</div>
+          ))}
+          <button onClick={() => navigate('request-access')} style={{
+            background:C.accent, color:'#fff', border:'none', padding:'16px',
+            fontFamily:F.mono, fontSize:14, letterSpacing:'0.1em',
+            textTransform:'uppercase', cursor:'pointer', marginTop:20, width:'100%',
+          }}>Request Access →</button>
+        </div>
+      )}
+    </nav>
+  );
+}
+
+function Footer({ navigate }) {
+  const { isMobile } = useResponsive();
+  const links = [
+    { label:'Features', page:'features' },
+    { label:'How It Works', page:'how-it-works' },
+    { label:'About', page:'about' },
+    { label:'Login', page:'login' },
+    { label:'Request Access', page:'request-access' },
+  ];
+  return (
+    <footer style={{
+      background:C.surface, borderTop:`1px solid ${C.border}`,
+      padding: isMobile ? '48px 24px 36px' : '48px 32px',
+    }}>
+      <div style={{
+        maxWidth:1280, margin:'0 auto',
+        display:'flex', flexDirection: isMobile ? 'column' : 'row',
+        alignItems: isMobile ? 'flex-start' : 'center',
+        justifyContent:'space-between', gap: isMobile ? 32 : 24,
+      }}>
+        <Logo size={22} />
+        <div style={{ display:'flex', gap: isMobile ? 20 : 28, flexWrap:'wrap' }}>
+          {links.map(l => (
+            <span key={l.page} style={{
+              fontFamily:F.mono, fontSize:13, color:C.dim,
+              textTransform:'uppercase', letterSpacing:'0.08em',
+              cursor:'pointer', transition:'color 0.15s',
+            }} onClick={() => navigate(l.page)}
+              onMouseEnter={e => e.target.style.color = C.text}
+              onMouseLeave={e => e.target.style.color = C.dim}
+            >{l.label}</span>
+          ))}
+        </div>
+        <span style={{ fontFamily:F.mono, fontSize:13, color:C.dim }}>© 2026 Campaign Ops</span>
+      </div>
+    </footer>
+  );
+}
+
+function CTABanner({ navigate }) {
+  const { isMobile } = useResponsive();
+  return (
+    <section style={{ background:C.accent, padding: isMobile ? '72px 24px' : '80px 32px', textAlign:'center' }}>
+      <div style={{ maxWidth:800, margin:'0 auto' }}>
+        <div style={{
+          fontFamily:F.mono, fontSize:13, letterSpacing:'0.15em',
+          color:'rgba(255,255,255,0.65)', textTransform:'uppercase', marginBottom:20,
+        }}>— Ready When You Are —</div>
+        <h2 style={{
+          fontFamily:F.display, fontSize: isMobile ? 48 : 'clamp(48px,6vw,80px)',
+          color:'#fff', letterSpacing:'0.06em', margin:'0 0 32px', lineHeight:1,
+        }}>READY TO RUN A TIGHTER CAMPAIGN?</h2>
+        <button onClick={() => navigate('request-access')} style={{
+          background:'#fff', color:C.accent, border:'none',
+          padding: isMobile ? '16px 32px' : '16px 40px',
+          fontFamily:F.mono, fontSize:14, letterSpacing:'0.1em',
+          textTransform:'uppercase', cursor:'pointer',
+          fontWeight:700, transition:'transform 0.15s',
+          width: isMobile ? '100%' : 'auto',
+        }}
+          onMouseEnter={e => e.target.style.transform='translateY(-2px)'}
+          onMouseLeave={e => e.target.style.transform='translateY(0)'}
+        >Request Access →</button>
+      </div>
+    </section>
+  );
+}
+
+function SectionLabel({ children }) {
+  return (
+    <div style={{
+      fontFamily:F.mono, fontSize:13, letterSpacing:'0.15em',
+      color:C.accent, textTransform:'uppercase', marginBottom:16,
+    }}>{children}</div>
+  );
+}
+
+function AppMockup({ style }) {
+  const { isMobile } = useResponsive();
+  const clips = [
+    { tag:'OPP HIT', title:'JONES REVERSES POSITION ON EDUCATION FUNDING', time:'06:12' },
+    { tag:'EARNED',  title:'SMITH ENDORSED BY TEACHERS UNION — AP STORY', time:'05:47' },
+    { tag:'NEUTRAL', title:'POLLING UPDATE: RACE NARROWS TO 4 POINTS', time:'04:30' },
+    { tag:'OPP HIT', title:'ATTACK AD LAUNCHED IN METRO MARKETS', time:'03:15' },
+  ];
+  const tagStyle = (tag) => ({
+    fontFamily:F.mono, fontSize:13, letterSpacing:'0.06em', padding:'2px 8px',
+    background: tag==='OPP HIT' ? 'rgba(232,54,43,0.15)' : tag==='EARNED' ? 'rgba(201,162,53,0.15)' : C.surface3,
+    color: tag==='OPP HIT' ? C.accent : tag==='EARNED' ? C.gold : C.muted,
+    border:`1px solid ${tag==='OPP HIT' ? 'rgba(232,54,43,0.3)' : tag==='EARNED' ? 'rgba(201,162,53,0.3)' : C.border}`,
+    flexShrink:0,
+  });
+
+  if (isMobile) {
+    return (
+      <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:2, overflow:'hidden', ...style }}>
+        <div style={{ background:C.surface2, borderBottom:`1px solid ${C.border}`, padding:'10px 16px', display:'flex', alignItems:'center', gap:10 }}>
+          <div style={{ display:'flex', gap:6 }}>
+            {['#e85c4a','#f0b429','#29cc6a'].map(col => <div key={col} style={{ width:8, height:8, borderRadius:'50%', background:col }} />)}
+          </div>
+          <span style={{ fontFamily:F.mono, fontSize:13, color:C.muted }}>Campaign Ops — Morning Brief</span>
+        </div>
+        <div style={{ padding:'16px' }}>
+          <div style={{ fontFamily:F.display, fontSize:18, color:C.text, letterSpacing:'0.08em', marginBottom:4 }}>MORNING BRIEF — APR 27, 2026</div>
+          <div style={{ fontFamily:F.mono, fontSize:13, color:C.muted, marginBottom:16 }}>4 clips · Generated 06:14 AM</div>
+          {clips.map((item, i) => (
+            <div key={i} style={{ border:`1px solid ${C.border}`, padding:'12px 14px', marginBottom:8, background: i===0 ? C.surface2 : 'transparent' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:6 }}>
+                <div style={tagStyle(item.tag)}>{item.tag}</div>
+                <div style={{ fontFamily:F.mono, fontSize:13, color:C.dim }}>{item.time}</div>
+              </div>
+              <div style={{ fontFamily:F.mono, fontSize:13, color:C.text, lineHeight:1.5 }}>{item.title}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:2, overflow:'hidden', ...style }}>
+      <div style={{ background:C.surface2, borderBottom:`1px solid ${C.border}`, padding:'8px 16px', display:'flex', alignItems:'center', gap:12 }}>
+        <div style={{ display:'flex', gap:6 }}>
+          {['#e85c4a','#f0b429','#29cc6a'].map(col => <div key={col} style={{ width:10, height:10, borderRadius:'50%', background:col }} />)}
+        </div>
+        <span style={{ fontFamily:F.mono, fontSize:13, color:C.muted }}>Campaign Ops — Smith for Senate · Morning Brief</span>
+      </div>
+      <div style={{ display:'flex', height:320 }}>
+        {/* Sidebar */}
+        <div style={{ width:180, borderRight:`1px solid ${C.border}`, padding:'16px 0' }}>
+          {[
+            { icon:'◈', label:'Brief Viewer', active:true },
+            { icon:'⬡', label:'Pipeline', active:false },
+            { icon:'◉', label:'Rapid Response', active:false },
+            { icon:'◻', label:'Opposition', active:false },
+            { icon:'◈', label:'Social Posts', active:false },
+            { icon:'□', label:'Tasks', active:false },
+            { icon:'◎', label:'Contacts', active:false },
+          ].map(item => (
+            <div key={item.label} style={{
+              padding:'8px 16px', display:'flex', alignItems:'center', gap:10,
+              background: item.active ? C.surface3 : 'transparent',
+              borderLeft: item.active ? `2px solid ${C.accent}` : '2px solid transparent',
+            }}>
+              <span style={{ fontFamily:F.mono, fontSize:14, color: item.active ? C.accent : C.dim }}>{item.icon}</span>
+              <span style={{ fontFamily:F.mono, fontSize:13, color: item.active ? C.text : C.muted }}>{item.label}</span>
+            </div>
+          ))}
+        </div>
+        {/* Main */}
+        <div style={{ flex:1, padding:16, overflow:'hidden' }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
+            <div>
+              <div style={{ fontFamily:F.display, fontSize:16, color:C.text, letterSpacing:'0.08em' }}>MORNING BRIEF — APR 27, 2026</div>
+              <div style={{ fontFamily:F.mono, fontSize:13, color:C.muted }}>4 clips · Generated 06:14 AM · Smith for Senate</div>
+            </div>
+            <div style={{ background:C.accent, color:'#fff', fontFamily:F.mono, fontSize:13, padding:'4px 10px', letterSpacing:'0.08em' }}>EXPORT PDF</div>
+          </div>
+          {clips.map((item, i) => (
+            <div key={i} style={{ border:`1px solid ${C.border}`, padding:'10px 14px', marginBottom:8, display:'flex', alignItems:'center', gap:12, background: i===0 ? C.surface2 : 'transparent' }}>
+              <div style={tagStyle(item.tag)}>{item.tag}</div>
+              <div style={{ fontFamily:F.mono, fontSize:13, color:C.text, flex:1, lineHeight:1.4 }}>{item.title}</div>
+              <div style={{ fontFamily:F.mono, fontSize:13, color:C.dim }}>{item.time}</div>
+            </div>
+          ))}
+        </div>
+        {/* Right panel */}
+        <div style={{ width:200, borderLeft:`1px solid ${C.border}`, padding:16 }}>
+          <div style={{ fontFamily:F.mono, fontSize:13, color:C.muted, marginBottom:12, letterSpacing:'0.08em' }}>RAPID RESPONSE</div>
+          <div style={{ fontFamily:F.mono, fontSize:13, color:C.text, lineHeight:1.6, marginBottom:12, borderLeft:`2px solid ${C.accent}`, paddingLeft:10 }}>
+            "Jones's reversal on education funding raises serious questions about whether voters can trust his word."
+          </div>
+          <div style={{ fontFamily:F.mono, fontSize:13, color:C.muted, marginBottom:12 }}>Draft in 8s · On message</div>
+          <div style={{ border:`1px solid ${C.accent}`, color:C.accent, fontFamily:F.mono, fontSize:13, padding:'6px 10px', letterSpacing:'0.06em', textAlign:'center', cursor:'pointer' }}>COPY TO COMMS →</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// HOME PAGE
+// ─────────────────────────────────────────────
+function HomePage({ navigate }) {
+  const { isMobile, isTablet } = useResponsive();
+  const isSmall = isMobile || isTablet;
+  const [hoveredCard, setHoveredCard] = React.useState(null);
+
+  const features = [
+    { icon:'◈', name:'AI Press Briefs',      copy:'Daily intelligence briefs generated and ready before your morning call.' },
+    { icon:'◉', name:'Opposition Research',   copy:'Build opponent profiles and surface vulnerabilities automatically.' },
+    { icon:'▶', name:'Rapid Response',        copy:'Draft responses to breaking news in seconds, not hours.' },
+    { icon:'⬡', name:'Social Posts',          copy:'On-brand posts drafted and queued from your pipeline.' },
+    { icon:'□', name:'Task Tracking',         copy:'Keep your team accountable without a separate project manager.' },
+    { icon:'◎', name:'Contact Manager',       copy:'Every donor, journalist, and ally in one searchable database.' },
+  ];
+
+  return (
+    <div style={{ background:C.bg }}>
+
+      {/* HERO */}
+      <section style={{
+        minHeight:'100vh', display:'flex', flexDirection:'column', justifyContent:'center',
+        padding: isMobile ? '110px 24px 60px' : '120px 32px 80px',
+        position:'relative', overflow:'hidden',
+      }}>
+        <div style={{
+          position:'absolute', inset:0, pointerEvents:'none',
+          backgroundImage:`linear-gradient(${C.border} 1px,transparent 1px),linear-gradient(90deg,${C.border} 1px,transparent 1px)`,
+          backgroundSize: isMobile ? '40px 40px' : '60px 60px', opacity:0.3,
+        }} />
+        <div style={{
+          position:'absolute', top:-200, right:-200, width:600, height:600, borderRadius:'50%',
+          background:`radial-gradient(circle,rgba(232,54,43,0.12) 0%,transparent 70%)`, pointerEvents:'none',
+        }} />
+
+        <div style={{ maxWidth:1280, margin:'0 auto', width:'100%', position:'relative' }}>
+          <div style={{
+            fontFamily:F.mono, fontSize:13, letterSpacing:'0.15em', color:C.accent,
+            textTransform:'uppercase', marginBottom:24, display:'flex', alignItems:'center', gap:12,
+          }}>
+            <div style={{ width:24, height:1, background:C.accent }} />
+            AI-Powered Campaign Command Center
+          </div>
+
+          <h1 style={{
+            fontFamily:F.display,
+            fontSize: isMobile ? 'clamp(52px,16vw,80px)' : 'clamp(64px,9vw,128px)',
+            color:C.text, letterSpacing:'0.04em', margin:'0 0 4px', lineHeight:0.95,
+          }}>YOUR CAMPAIGN.</h1>
+          <h1 style={{
+            fontFamily:F.display,
+            fontSize: isMobile ? 'clamp(52px,16vw,80px)' : 'clamp(64px,9vw,128px)',
+            letterSpacing:'0.04em', margin:'0 0 32px', lineHeight:0.95,
+            background:`linear-gradient(90deg,${C.accent} 0%,${C.gold} 100%)`,
+            WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text',
+          }}>ONE COMMAND CENTER.</h1>
+
+          <p style={{
+            fontFamily:F.body, fontSize: isMobile ? 17 : 'clamp(16px,1.8vw,20px)',
+            color:C.muted, maxWidth:600, lineHeight:1.7, margin:'0 0 40px',
+          }}>
+            Campaign Ops gives your team AI-powered briefs, opposition research,
+            rapid response drafts, and real-time task management — built for the
+            speed of a campaign.
+          </p>
+
+          <div style={{ display:'flex', gap:16, flexWrap:'wrap', flexDirection: isMobile ? 'column' : 'row' }}>
+            <button onClick={() => navigate('request-access')} style={{
+              background:C.accent, color:'#fff', border:'none', padding:'16px 36px',
+              fontFamily:F.mono, fontSize:14, letterSpacing:'0.1em', textTransform:'uppercase',
+              cursor:'pointer', width: isMobile ? '100%' : 'auto',
+              transition:'opacity 0.15s',
+            }}
+              onMouseEnter={e => e.currentTarget.style.opacity='0.85'}
+              onMouseLeave={e => e.currentTarget.style.opacity='1'}
+            >Request Access →</button>
+            <button onClick={() => navigate('how-it-works')} style={{
+              background:'transparent', color:C.text, border:`1px solid ${C.border}`,
+              padding:'16px 36px', fontFamily:F.mono, fontSize:14, letterSpacing:'0.1em',
+              textTransform:'uppercase', cursor:'pointer', width: isMobile ? '100%' : 'auto',
+              transition:'border-color 0.15s',
+            }}
+              onMouseEnter={e => e.currentTarget.style.borderColor=C.muted}
+              onMouseLeave={e => e.currentTarget.style.borderColor=C.border}
+            >See How It Works</button>
+          </div>
+
+          <div style={{ marginTop:64, position:'relative' }}>
+            <div style={{
+              position:'absolute', inset:-1,
+              background:`linear-gradient(180deg,transparent 50%,${C.bg} 100%)`,
+              zIndex:2, pointerEvents:'none',
+            }} />
+            <AppMockup style={{ width:'100%' }} />
+          </div>
+        </div>
+      </section>
+
+      {/* SOCIAL PROOF BAR */}
+      <section style={{
+        borderTop:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}`,
+        padding: isMobile ? '20px 24px' : '20px 32px', background:C.surface,
+      }}>
+        <div style={{
+          maxWidth:1280, margin:'0 auto',
+          display:'flex', alignItems:'center', justifyContent:'center',
+          gap: isMobile ? 16 : 48, flexWrap:'wrap', textAlign:'center',
+        }}>
+          <span style={{ fontFamily:F.mono, fontSize:13, color:C.dim, letterSpacing:'0.12em', textTransform:'uppercase' }}>
+            BUILT BY OPERATIVES, FOR OPERATIVES.
+          </span>
+          {!isMobile && <div style={{ width:1, height:20, background:C.border }} />}
+          <span style={{ fontFamily:F.mono, fontSize:13, color:C.muted, letterSpacing:'0.1em' }}>
+            State Legislative · Congressional · Gubernatorial
+          </span>
+        </div>
+      </section>
+
+      {/* FEATURE HIGHLIGHTS */}
+      <section style={{ padding: isMobile ? '72px 24px' : '120px 32px', background:C.bg }}>
+        <div style={{ maxWidth:1280, margin:'0 auto' }}>
+          <SectionLabel>— Full Stack Coverage</SectionLabel>
+          <h2 style={{
+            fontFamily:F.display, fontSize: isMobile ? 40 : 'clamp(40px,5vw,72px)',
+            color:C.text, letterSpacing:'0.06em', margin:'0 0 14px',
+          }}>EVERY TOOL YOUR TEAM NEEDS.</h2>
+          <p style={{ fontFamily:F.body, fontSize:17, color:C.muted, maxWidth:480, lineHeight:1.7, margin:'0 0 52px' }}>
+            One login. One screen. No switching.
+          </p>
+          <div style={{
+            display:'grid',
+            gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2,1fr)' : 'repeat(3,1fr)',
+            gap:1, background:C.border,
+          }}>
+            {features.map((feat, i) => (
+              <div key={i}
+                onMouseEnter={() => setHoveredCard(i)}
+                onMouseLeave={() => setHoveredCard(null)}
+                style={{
+                  background: hoveredCard===i ? C.surface2 : C.surface,
+                  padding: isMobile ? '28px 24px' : '36px 32px',
+                  transition:'background 0.2s',
+                }}>
+                <div style={{ fontFamily:F.mono, fontSize:22, color: hoveredCard===i ? C.accent : C.dim, marginBottom:18, transition:'color 0.2s' }}>{feat.icon}</div>
+                <div style={{ fontFamily:F.display, fontSize:24, letterSpacing:'0.08em', color:C.text, marginBottom:12 }}>{feat.name}</div>
+                <div style={{ fontFamily:F.body, fontSize:16, color:C.muted, lineHeight:1.6 }}>{feat.copy}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* WAR ROOM */}
+      <section style={{ padding: isMobile ? '72px 24px' : '120px 32px', background:C.surface, borderTop:`1px solid ${C.border}` }}>
+        <div style={{ maxWidth:1280, margin:'0 auto' }}>
+          <div style={{ display:'grid', gridTemplateColumns: isSmall ? '1fr' : '1fr 1fr', gap: isSmall ? 48 : 80, alignItems:'center' }}>
+            <div>
+              <SectionLabel>— The War Room</SectionLabel>
+              <h2 style={{
+                fontFamily:F.display, fontSize: isMobile ? 36 : 'clamp(36px,4vw,64px)',
+                color:C.text, letterSpacing:'0.06em', margin:'0 0 24px', lineHeight:1,
+              }}>BUILT FOR HOW CAMPAIGNS ACTUALLY WORK.</h2>
+              <p style={{ fontFamily:F.body, fontSize:17, color:C.muted, lineHeight:1.8, margin:'0 0 18px' }}>
+                Campaigns run on 18-hour days, five tools open at once, and things
+                falling through the cracks. Your comms director is texting about an
+                attack ad while your field director needs a contact pull.
+              </p>
+              <p style={{ fontFamily:F.body, fontSize:17, color:C.muted, lineHeight:1.8, margin:'0 0 36px' }}>
+                Campaign Ops collapses that into one system. One login. One screen. Everyone aligned.
+              </p>
+              <button onClick={() => navigate('features')} style={{
+                background:'transparent', color:C.text, border:`1px solid ${C.border}`,
+                padding:'14px 28px', fontFamily:F.mono, fontSize:14, letterSpacing:'0.1em',
+                textTransform:'uppercase', cursor:'pointer', width: isMobile ? '100%' : 'auto',
+              }}>See All Features →</button>
+            </div>
+            {/* Pipeline mockup */}
+            <div style={{ background:C.bg, border:`1px solid ${C.border}`, padding:24 }}>
+              <div style={{ fontFamily:F.mono, fontSize:13, color:C.muted, letterSpacing:'0.1em', marginBottom:20, textTransform:'uppercase' }}>Pipeline · Smith for Senate</div>
+              {[
+                { stage:'INTAKE',   items:['AP Story: Debate Recap','Opp Research Clip'] },
+                { stage:'DRAFTING', items:['Rapid Response: Education','Social Thread'] },
+                { stage:'REVIEW',   items:['Press Statement: Energy'] },
+              ].map((col, i) => (
+                <div key={i} style={{ marginBottom:20 }}>
+                  <div style={{ fontFamily:F.mono, fontSize:13, color:C.accent, letterSpacing:'0.1em', marginBottom:10 }}>{col.stage}</div>
+                  {col.items.map((item, j) => (
+                    <div key={j} style={{ fontFamily:F.mono, fontSize:13, color:C.muted, padding:'10px 12px', background:C.surface2, border:`1px solid ${C.border}`, marginBottom:6 }}>{item}</div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* WORKFLOW TEASER */}
+      <section style={{ padding: isMobile ? '72px 24px' : '120px 32px', background:C.bg }}>
+        <div style={{ maxWidth:1280, margin:'0 auto' }}>
+          <SectionLabel>— The Day-to-Day</SectionLabel>
+          <h2 style={{
+            fontFamily:F.display, fontSize: isMobile ? 36 : 'clamp(40px,5vw,64px)',
+            color:C.text, letterSpacing:'0.06em', margin:'0 0 60px',
+          }}>THE CAMPAIGN DAY, AUTOMATED.</h2>
+          <div style={{ display:'grid', gridTemplateColumns: isSmall ? '1fr' : 'repeat(3,1fr)', gap: isSmall ? 40 : 0 }}>
+            {[
+              { num:'01', label:'MORNING BRIEF',  copy:'AI pulls overnight news, generates a tagged summary. Your team walks in briefed.' },
+              { num:'02', label:'RESPONSE READY', copy:'Opponent hits. Rapid response draft is one click away. Eight seconds, not eight hours.' },
+              { num:'03', label:'TEAM ALIGNED',   copy:'Tasks assigned, contacts updated, posts queued. Everyone knows the play.' },
+            ].map((step, i) => (
+              <div key={i} style={{ padding: isSmall ? 0 : '0 40px 0 0' }}>
+                <div style={{
+                  width:48, height:48, border:`1px solid ${C.accent}`,
+                  display:'flex', alignItems:'center', justifyContent:'center',
+                  fontFamily:F.mono, fontSize:14, color:C.accent, background:C.bg, marginBottom:24,
+                }}>{step.num}</div>
+                <div style={{ fontFamily:F.display, fontSize:28, letterSpacing:'0.08em', color:C.text, marginBottom:14 }}>{step.label}</div>
+                <div style={{ fontFamily:F.body, fontSize:17, color:C.muted, lineHeight:1.7 }}>{step.copy}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop:64, textAlign: isMobile ? 'left' : 'center' }}>
+            <button onClick={() => navigate('how-it-works')} style={{
+              background:'transparent', color:C.text, border:`1px solid ${C.border}`,
+              padding:'14px 32px', fontFamily:F.mono, fontSize:14, letterSpacing:'0.1em',
+              textTransform:'uppercase', cursor:'pointer', width: isMobile ? '100%' : 'auto',
+            }}>See Full Walkthrough →</button>
+          </div>
+        </div>
+      </section>
+
+      <CTABanner navigate={navigate} />
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// FEATURES PAGE
+// ─────────────────────────────────────────────
+function FeaturesPage({ navigate }) {
+  const { isMobile, isTablet } = useResponsive();
+  const isSmall = isMobile || isTablet;
+
+  const features = [
+    {
+      num:'01', name:'AI Press Briefs',
+      headline:'KNOW WHAT\'S HAPPENING BEFORE ANYONE CALLS YOU.',
+      desc:'Campaign Ops Agent monitors news feeds, tags coverage by topic and sentiment, and generates a structured morning brief — automatically. Your team walks in knowing everything.',
+      bullets:['Scheduled daily delivery','Topic tagging: earned media, opposition hits, policy','Full-text archive','Shareable PDF export'],
+    },
+    {
+      num:'02', name:'Pipeline & Node Editor',
+      headline:'CONTENT FROM INTAKE TO PUBLISH IN ONE FLOW.',
+      desc:'A visual pipeline that moves press clips, research, and drafts through stages — from raw input to published output — without email chains or Slack threads.',
+      bullets:['Custom pipeline stages','Node editor for complex content flows','Archive of completed items','Team visibility on every stage'],
+    },
+    {
+      num:'03', name:'Opposition Research',
+      headline:'BUILD THE FILE. KNOW YOUR OPPONENT.',
+      desc:'Structure and store everything you know about your opponent. Surface it when you need it — in the brief, in rapid response, in the debate prep room.',
+      bullets:['Opponent profiles','Issue and vote tracking','Source linking','Searchable archive'],
+    },
+    {
+      num:'04', name:'Rapid Response',
+      headline:'RESPOND FAST. RESPOND RIGHT.',
+      desc:'When something breaks, Campaign Ops Agent has your draft ready in seconds — on message, on brand, with the right context pulled automatically.',
+      bullets:['AI-assisted drafting','Message discipline guardrails','Timestamped log','One-click copy to comms tools'],
+    },
+    {
+      num:'05', name:'Social Posts',
+      headline:'ON-BRAND. ON-SCHEDULE. ON-MESSAGE.',
+      desc:'Generate platform-appropriate posts from your pipeline content. Maintain a consistent voice across every channel without briefing a separate social team.',
+      bullets:['Platform-specific formatting','Draft queue','Approval workflow','Brand voice consistency'],
+    },
+    {
+      num:'06', name:'Tasks & Contacts',
+      headline:'THE TEAM KNOWS THE PLAY.',
+      desc:'Assign tasks, set deadlines, manage your contact list — without leaving the app. Every donor, journalist, and ally one search away.',
+      bullets:['Task assignment and status','Deadline tracking','Contact database: donors, press, allies','Role-based access: Admin / Staff / Viewer'],
+    },
+  ];
+
+  const FeatureMockup = ({ index }) => {
+    const base = { background:C.surface2, border:`1px solid ${C.border}`, padding:20 };
+    const panels = [
+      <div style={base}>
+        <div style={{ fontFamily:F.mono, fontSize:13, color:C.accent, marginBottom:14, letterSpacing:'0.1em' }}>MORNING BRIEF · APR 27</div>
+        {['OPP HIT','EARNED','POLICY'].map((tag, i) => (
+          <div key={i} style={{ display:'flex', gap:10, alignItems:'center', padding:'10px 0', borderBottom:`1px solid ${C.border}` }}>
+            <span style={{ fontFamily:F.mono, fontSize:13, padding:'2px 8px',
+              background: tag==='OPP HIT' ? 'rgba(232,54,43,0.15)' : tag==='EARNED' ? 'rgba(201,162,53,0.15)' : C.surface3,
+              color: tag==='OPP HIT' ? C.accent : tag==='EARNED' ? C.gold : C.muted,
+              border:`1px solid ${tag==='OPP HIT' ? 'rgba(232,54,43,0.3)' : tag==='EARNED' ? 'rgba(201,162,53,0.3)' : C.border}`,
+            }}>{tag}</span>
+            <span style={{ fontFamily:F.mono, fontSize:13, color:C.muted }}>Smith for Senate coverage</span>
+          </div>
+        ))}
+        <div style={{ fontFamily:F.mono, fontSize:13, color:C.dim, marginTop:14 }}>Generated 06:14 AM · 3 clips today</div>
+      </div>,
+      <div style={base}>
+        <div style={{ display:'flex', gap:8, marginBottom:18 }}>
+          {['INTAKE','DRAFTING','REVIEW','LIVE'].map((stage, i) => (
+            <div key={i} style={{ flex:1, textAlign:'center' }}>
+              <div style={{ fontFamily:F.mono, fontSize:13, color: i===1 ? C.accent : C.dim, letterSpacing:'0.06em', marginBottom:8 }}>{stage}</div>
+              <div style={{ height:3, background: i===1 ? C.accent : C.border }} />
+            </div>
+          ))}
+        </div>
+        {['Press Statement · Energy','Rapid Response Draft','Social Thread: Jobs'].map((item, i) => (
+          <div key={i} style={{ fontFamily:F.mono, fontSize:13, color:C.muted, padding:'10px 12px', background:C.bg, border:`1px solid ${C.border}`, marginBottom:8 }}>{item}</div>
+        ))}
+      </div>,
+      <div style={base}>
+        <div style={{ fontFamily:F.mono, fontSize:13, color:C.accent, marginBottom:14, letterSpacing:'0.1em' }}>OPPONENT · T. JONES</div>
+        {[['Education','Reversed 2024'],['Taxes','3 missed votes'],['Crime','On-record contradiction']].map(([t,n], i) => (
+          <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'10px 0', borderBottom:`1px solid ${C.border}` }}>
+            <span style={{ fontFamily:F.mono, fontSize:13, color:C.text }}>{t}</span>
+            <span style={{ fontFamily:F.mono, fontSize:13, color:C.muted }}>{n}</span>
+          </div>
+        ))}
+        <div style={{ fontFamily:F.mono, fontSize:13, color:C.dim, marginTop:14 }}>14 sources linked · Updated today</div>
+      </div>,
+      <div style={base}>
+        <div style={{ fontFamily:F.mono, fontSize:13, color:C.accent, marginBottom:14, letterSpacing:'0.1em' }}>RAPID RESPONSE DRAFT</div>
+        <div style={{ fontFamily:F.mono, fontSize:13, color:C.text, lineHeight:1.6, borderLeft:`2px solid ${C.accent}`, paddingLeft:14, marginBottom:18 }}>
+          "Jones's reversal raises serious questions about whether voters can trust his word on any issue."
+        </div>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+          <span style={{ fontFamily:F.mono, fontSize:13, color:C.dim }}>Generated in 8s</span>
+          <span style={{ fontFamily:F.mono, fontSize:13, color:C.accent, border:`1px solid ${C.accent}`, padding:'6px 12px', cursor:'pointer' }}>COPY →</span>
+        </div>
+      </div>,
+      <div style={base}>
+        <div style={{ fontFamily:F.mono, fontSize:13, color:C.gold, marginBottom:14, letterSpacing:'0.1em' }}>SOCIAL QUEUE · 3 DRAFTS</div>
+        {[['Twitter/X','280 chars'],['Facebook','Long-form'],['Instagram','Caption']].map(([p,n], i) => (
+          <div key={i} style={{ padding:'10px 12px', background:C.bg, border:`1px solid ${C.border}`, marginBottom:8, display:'flex', justifyContent:'space-between' }}>
+            <span style={{ fontFamily:F.mono, fontSize:13, color:C.text }}>{p}</span>
+            <span style={{ fontFamily:F.mono, fontSize:13, color:C.muted }}>{n}</span>
+          </div>
+        ))}
+      </div>,
+      <div style={base}>
+        <div style={{ fontFamily:F.mono, fontSize:13, color:C.text, marginBottom:14, letterSpacing:'0.1em' }}>TODAY'S TASKS</div>
+        {[['Send debate prep brief','M. Chen',true],['Update donor contacts','J. Walsh',false],['Review social queue','You',false]].map(([task,person,done], i) => (
+          <div key={i} style={{ display:'flex', gap:12, alignItems:'center', padding:'9px 0', borderBottom:`1px solid ${C.border}` }}>
+            <div style={{ width:16, height:16, border:`1px solid ${done?C.accent:C.border}`, background:done?C.accent:'transparent', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+              {done && <span style={{ color:'#fff', fontSize:13 }}>✓</span>}
+            </div>
+            <span style={{ fontFamily:F.mono, fontSize:13, color:done?C.dim:C.text, flex:1, textDecoration:done?'line-through':'none' }}>{task}</span>
+            <span style={{ fontFamily:F.mono, fontSize:13, color:C.muted }}>{person}</span>
+          </div>
+        ))}
+      </div>,
+    ];
+    return panels[index] || null;
+  };
+
+  return (
+    <div style={{ background:C.bg, paddingTop:64 }}>
+      <section style={{ padding: isMobile ? '72px 24px 56px' : '100px 32px 80px', borderBottom:`1px solid ${C.border}`, background:C.surface }}>
+        <div style={{ maxWidth:1280, margin:'0 auto' }}>
+          <SectionLabel>— Full Feature Breakdown</SectionLabel>
+          <h1 style={{ fontFamily:F.display, fontSize: isMobile ? 44 : 'clamp(48px,6vw,88px)', color:C.text, letterSpacing:'0.06em', margin:'0 0 20px', lineHeight:1 }}>
+            EVERY TOOL YOUR TEAM NEEDS.
+          </h1>
+          <p style={{ fontFamily:F.body, fontSize:18, color:C.muted, maxWidth:480 }}>One login. One screen. No switching.</p>
+        </div>
+      </section>
+
+      {features.map((feat, i) => (
+        <section key={i} style={{ padding: isMobile ? '64px 24px' : '100px 32px', background: i%2===0 ? C.bg : C.surface, borderBottom:`1px solid ${C.border}` }}>
+          <div style={{ maxWidth:1280, margin:'0 auto', display:'grid', gridTemplateColumns: isSmall ? '1fr' : '1fr 1fr', gap: isSmall ? 40 : 80, alignItems:'center' }}>
+            <div style={{ order: (!isSmall && i%2!==0) ? 1 : 0 }}>
+              <div style={{ fontFamily:F.mono, fontSize:13, color:C.accent, letterSpacing:'0.15em', marginBottom:16 }}>FEATURE {feat.num}</div>
+              <h2 style={{ fontFamily:F.display, fontSize: isMobile ? 30 : 'clamp(28px,3vw,44px)', color:C.text, letterSpacing:'0.06em', margin:'0 0 22px', lineHeight:1.05 }}>{feat.headline}</h2>
+              <p style={{ fontFamily:F.body, fontSize:17, color:C.muted, lineHeight:1.8, margin:'0 0 24px' }}>{feat.desc}</p>
+              <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+                {feat.bullets.map((b, j) => (
+                  <div key={j} style={{ display:'flex', gap:14, alignItems:'flex-start' }}>
+                    <div style={{ width:5, height:5, background:C.accent, marginTop:8, flexShrink:0 }} />
+                    <span style={{ fontFamily:F.mono, fontSize:14, color:C.muted, lineHeight:1.6 }}>{b}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{ order: (!isSmall && i%2!==0) ? 0 : 1 }}>
+              <FeatureMockup index={i} />
+            </div>
+          </div>
+        </section>
+      ))}
+
+      <CTABanner navigate={navigate} />
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// HOW IT WORKS PAGE
+// ─────────────────────────────────────────────
+function HowItWorksPage({ navigate }) {
+  const { isMobile, isTablet } = useResponsive();
+  const isSmall = isMobile || isTablet;
+  const [activeStep, setActiveStep] = React.useState(0);
+
+  const timeline = [
+    {
+      time:'6:45 AM', label:'MORNING BRIEF LANDS', actor:'Campaign Manager', tag:'BRIEF', color:C.gold,
+      action:'Opens Campaign Ops Agent. Brief Viewer has overnight clips organized by topic, tagged, and summarized. No inbox archaeology. No Slack scroll.',
+      detail:'AI pulled 6 clips overnight — 2 opp hits, 3 earned media, 1 polling update.',
+    },
+    {
+      time:'8:02 AM', label:'OPPONENT DROPS ATTACK AD', actor:'Communications Director', tag:'RAPID RESPONSE', color:C.accent,
+      action:'Clip flagged in real time. Rapid Response panel opens automatically. AI draft ready in 8 seconds — on message, sourced correctly, ready to edit.',
+      detail:'Draft references opponent\'s 2022 vote record and campaign\'s standing rebuttal.',
+    },
+    {
+      time:'1:30 PM', label:'PIPELINE REVIEW', actor:'Comms Team', tag:'PIPELINE', color:C.accent,
+      action:'Three clips moved to social. Drafts generated per platform. Queued for approval with one click. No separate briefing, no format guessing.',
+      detail:'3 posts drafted · Twitter, Facebook, Instagram · Awaiting sign-off',
+    },
+    {
+      time:'5:00 PM', label:'END-OF-DAY WRAP', actor:'Campaign Manager', tag:'TASKS', color:C.gold,
+      action:'Tasks checked off, new tasks assigned for tomorrow. Contacts updated after a donor call. Everyone logs off knowing the play for morning.',
+      detail:'7 tasks closed · 3 assigned · 2 contacts updated · Brief queued for 6:00 AM',
+    },
+  ];
+
+  const StepScreen = ({ step }) => {
+    const screens = [
+      <div style={{ background:C.surface, border:`1px solid ${C.border}` }}>
+        <div style={{ background:C.surface2, borderBottom:`1px solid ${C.border}`, padding:'10px 16px', display:'flex', gap:8, alignItems:'center' }}>
+          {['#e85c4a','#f0b429','#29cc6a'].map(col => <div key={col} style={{ width:10, height:10, borderRadius:'50%', background:col }} />)}
+          <span style={{ fontFamily:F.mono, fontSize:13, color:C.muted, marginLeft:8 }}>Brief Viewer · Apr 27</span>
+        </div>
+        <div style={{ padding:20 }}>
+          <div style={{ fontFamily:F.display, fontSize:20, color:C.text, letterSpacing:'0.08em', marginBottom:6 }}>MORNING BRIEF</div>
+          <div style={{ fontFamily:F.mono, fontSize:13, color:C.muted, marginBottom:20 }}>Generated 06:14 AM · 6 clips</div>
+          {[['OPP HIT','Jones reverses on education — AP, 05:47'],['EARNED','Smith endorsed by teachers union'],['OPP HIT','Attack ad in metro markets'],['NEUTRAL','Polling update: race at 4 points']].map(([tag,text], i) => (
+            <div key={i} style={{ display:'flex', gap:10, padding:'10px 0', borderBottom:`1px solid ${C.border}`, alignItems:'flex-start' }}>
+              <span style={{ fontFamily:F.mono, fontSize:13, padding:'3px 8px', flexShrink:0, marginTop:2,
+                background: tag==='OPP HIT' ? 'rgba(232,54,43,0.15)' : 'rgba(201,162,53,0.15)',
+                color: tag==='OPP HIT' ? C.accent : C.gold,
+                border:`1px solid ${tag==='OPP HIT' ? 'rgba(232,54,43,0.3)' : 'rgba(201,162,53,0.3)'}`,
+              }}>{tag}</span>
+              <span style={{ fontFamily:F.mono, fontSize:13, color:C.muted, lineHeight:1.5 }}>{text}</span>
+            </div>
+          ))}
+        </div>
+      </div>,
+      <div style={{ background:C.surface, border:`1px solid ${C.border}` }}>
+        <div style={{ background:C.surface2, borderBottom:`1px solid ${C.border}`, padding:'10px 16px', display:'flex', gap:8, alignItems:'center' }}>
+          {['#e85c4a','#f0b429','#29cc6a'].map(col => <div key={col} style={{ width:10, height:10, borderRadius:'50%', background:col }} />)}
+          <span style={{ fontFamily:F.mono, fontSize:13, color:C.accent, marginLeft:8 }}>⚡ RAPID RESPONSE TRIGGERED</span>
+        </div>
+        <div style={{ padding:20 }}>
+          <div style={{ fontFamily:F.mono, fontSize:13, color:C.muted, marginBottom:10 }}>TRIGGER: Jones attack ad · 8:02 AM</div>
+          <div style={{ fontFamily:F.display, fontSize:18, color:C.text, letterSpacing:'0.06em', marginBottom:18 }}>AI DRAFT READY</div>
+          <div style={{ border:`1px solid ${C.border}`, borderLeft:`3px solid ${C.accent}`, padding:'14px 16px', marginBottom:18, background:C.bg }}>
+            <div style={{ fontFamily:F.mono, fontSize:13, color:C.text, lineHeight:1.6 }}>"Jones's reversal on education funding raises serious questions about whether voters can trust his word on any issue."</div>
+          </div>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:12 }}>
+            <span style={{ fontFamily:F.mono, fontSize:13, color:C.muted }}>Generated in 8s · On message</span>
+            <div style={{ background:C.accent, color:'#fff', fontFamily:F.mono, fontSize:13, padding:'8px 16px', cursor:'pointer', letterSpacing:'0.06em' }}>COPY TO COMMS</div>
+          </div>
+        </div>
+      </div>,
+      <div style={{ background:C.surface, border:`1px solid ${C.border}` }}>
+        <div style={{ background:C.surface2, borderBottom:`1px solid ${C.border}`, padding:'10px 16px', display:'flex', gap:8, alignItems:'center' }}>
+          {['#e85c4a','#f0b429','#29cc6a'].map(col => <div key={col} style={{ width:10, height:10, borderRadius:'50%', background:col }} />)}
+          <span style={{ fontFamily:F.mono, fontSize:13, color:C.muted, marginLeft:8 }}>Pipeline · Afternoon Review</span>
+        </div>
+        <div style={{ padding:20 }}>
+          {[{ stage:'MOVING TO SOCIAL', items:['Jobs Bill Press Clip','Education Response'], color:C.gold },
+            { stage:'SOCIAL DRAFTS READY', items:['Twitter: 3 posts queued','Facebook: long-form ready'], color:C.accent }
+          ].map((col, i) => (
+            <div key={i} style={{ marginBottom:20 }}>
+              <div style={{ fontFamily:F.mono, fontSize:13, color:col.color, letterSpacing:'0.1em', marginBottom:12 }}>{col.stage}</div>
+              {col.items.map((item, j) => (
+                <div key={j} style={{ fontFamily:F.mono, fontSize:13, color:C.muted, padding:'10px 14px', background:C.bg, border:`1px solid ${C.border}`, marginBottom:8 }}>{item}</div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>,
+      <div style={{ background:C.surface, border:`1px solid ${C.border}` }}>
+        <div style={{ background:C.surface2, borderBottom:`1px solid ${C.border}`, padding:'10px 16px', display:'flex', gap:8, alignItems:'center' }}>
+          {['#e85c4a','#f0b429','#29cc6a'].map(col => <div key={col} style={{ width:10, height:10, borderRadius:'50%', background:col }} />)}
+          <span style={{ fontFamily:F.mono, fontSize:13, color:C.muted, marginLeft:8 }}>Tasks · End of Day</span>
+        </div>
+        <div style={{ padding:20 }}>
+          <div style={{ display:'flex', gap:28, marginBottom:20 }}>
+            {[['7','CLOSED',C.gold],['3','OPEN',C.accent],['2','TOMORROW',C.muted]].map(([n,l,col]) => (
+              <div key={l}><div style={{ fontFamily:F.mono, fontSize:28, color:col, lineHeight:1 }}>{n}</div><div style={{ fontFamily:F.mono, fontSize:13, color:C.muted, letterSpacing:'0.1em' }}>{l}</div></div>
+            ))}
+          </div>
+          {[['Send debate prep','M. Chen',true],['Update donor contacts','J. Walsh',true],['Review social queue','You',false]].map(([task,person,done], i) => (
+            <div key={i} style={{ display:'flex', gap:12, alignItems:'center', padding:'10px 0', borderBottom:`1px solid ${C.border}` }}>
+              <div style={{ width:16, height:16, border:`1px solid ${done?C.gold:C.border}`, background:done?C.gold:'transparent', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                {done && <span style={{ color:'#000', fontSize:13 }}>✓</span>}
+              </div>
+              <span style={{ fontFamily:F.mono, fontSize:13, color:done?C.dim:C.text, flex:1, textDecoration:done?'line-through':'none' }}>{task}</span>
+              <span style={{ fontFamily:F.mono, fontSize:13, color:C.muted }}>{person}</span>
+            </div>
+          ))}
+        </div>
+      </div>,
+    ];
+    return screens[step] || null;
+  };
+
+  return (
+    <div style={{ background:C.bg, paddingTop:64 }}>
+      <section style={{ padding: isMobile ? '72px 24px 56px' : '100px 32px 80px', background:C.surface, borderBottom:`1px solid ${C.border}` }}>
+        <div style={{ maxWidth:1280, margin:'0 auto' }}>
+          <SectionLabel>— Day-in-the-Life Walkthrough</SectionLabel>
+          <h1 style={{ fontFamily:F.display, fontSize: isMobile ? 44 : 'clamp(48px,6vw,88px)', color:C.text, letterSpacing:'0.06em', margin:'0 0 20px', lineHeight:1 }}>
+            HOW CAMPAIGNS USE IT.
+          </h1>
+          <p style={{ fontFamily:F.body, fontSize:18, color:C.muted, maxWidth:540, lineHeight:1.7 }}>
+            A fictional campaign — Smith for Senate — running through a real campaign day.
+          </p>
+        </div>
+      </section>
+
+      <section style={{ padding: isMobile ? '56px 24px' : '100px 32px' }}>
+        <div style={{ maxWidth:1280, margin:'0 auto' }}>
+          {/* Campaign bar */}
+          <div style={{ border:`1px solid ${C.border}`, padding:'16px 20px', display:'flex', alignItems:'center', gap:20, marginBottom:48, background:C.surface, flexWrap:'wrap' }}>
+            <div style={{ width:36, height:36, background:`linear-gradient(135deg,${C.accent},${C.gold})`, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:F.display, fontSize:14, color:'#fff', flexShrink:0 }}>SS</div>
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ fontFamily:F.display, fontSize:18, color:C.text, letterSpacing:'0.08em' }}>SMITH FOR SENATE</div>
+              <div style={{ fontFamily:F.mono, fontSize:13, color:C.muted }}>2026 Cycle · Competitive general · 94 days out</div>
+            </div>
+            {!isMobile && (
+              <div style={{ display:'flex', gap:24 }}>
+                {[['RACE STATUS','TOSS-UP'],['DAYS OUT','94'],['TEAM','12 STAFF']].map(([k,v]) => (
+                  <div key={k} style={{ textAlign:'right' }}>
+                    <div style={{ fontFamily:F.mono, fontSize:13, color:C.muted, letterSpacing:'0.08em' }}>{k}</div>
+                    <div style={{ fontFamily:F.mono, fontSize:14, color:C.accent, letterSpacing:'0.06em' }}>{v}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Step nav */}
+          <div style={{ display:'flex', marginBottom:48, border:`1px solid ${C.border}`, overflowX: isMobile ? 'auto' : 'visible', WebkitOverflowScrolling:'touch' }}>
+            {timeline.map((step, i) => (
+              <div key={i} onClick={() => setActiveStep(i)} style={{
+                flex: isMobile ? '0 0 160px' : 1,
+                padding:'16px 20px', cursor:'pointer',
+                background: activeStep===i ? C.surface2 : C.surface,
+                borderRight: i<3 ? `1px solid ${C.border}` : 'none',
+                borderBottom: activeStep===i ? `3px solid ${step.color}` : '3px solid transparent',
+                transition:'background 0.15s',
+              }}>
+                <div style={{ fontFamily:F.mono, fontSize:13, color:step.color, marginBottom:4, letterSpacing:'0.08em' }}>{step.time}</div>
+                <div style={{ fontFamily:F.mono, fontSize:13, color: activeStep===i ? C.text : C.muted, lineHeight:1.3 }}>{step.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Active step */}
+          {timeline.map((step, i) => i===activeStep && (
+            <div key={i} style={{ display:'grid', gridTemplateColumns: isSmall ? '1fr' : '1fr 1fr', gap: isSmall ? 40 : 80, alignItems:'start' }}>
+              <div>
+                <div style={{ fontFamily:F.mono, fontSize:13, letterSpacing:'0.12em', color:step.color, marginBottom:16, display:'flex', alignItems:'center', gap:12 }}>
+                  <div style={{ width:20, height:1, background:step.color }} />{step.tag}
+                </div>
+                <h2 style={{ fontFamily:F.display, fontSize: isMobile ? 32 : 'clamp(32px,3.5vw,52px)', color:C.text, letterSpacing:'0.06em', margin:'0 0 20px', lineHeight:1.05 }}>{step.label}</h2>
+                <div style={{ fontFamily:F.mono, fontSize:14, color:step.color, marginBottom:20, letterSpacing:'0.06em' }}>{step.actor}</div>
+                <p style={{ fontFamily:F.body, fontSize:17, color:C.muted, lineHeight:1.8, margin:'0 0 24px' }}>{step.action}</p>
+                <div style={{ border:`1px solid ${C.border}`, borderLeft:`3px solid ${step.color}`, padding:'14px 18px', background:C.surface }}>
+                  <div style={{ fontFamily:F.mono, fontSize:13, color:C.muted }}>{step.detail}</div>
+                </div>
+                <div style={{ display:'flex', gap:14, marginTop:36, flexWrap:'wrap' }}>
+                  {i>0 && (
+                    <button onClick={() => setActiveStep(i-1)} style={{ background:'transparent', border:`1px solid ${C.border}`, color:C.muted, padding:'12px 20px', fontFamily:F.mono, fontSize:13, letterSpacing:'0.08em', cursor:'pointer' }}>← Previous</button>
+                  )}
+                  {i<timeline.length-1 && (
+                    <button onClick={() => setActiveStep(i+1)} style={{ background:step.color, border:'none', color:'#fff', padding:'12px 24px', fontFamily:F.mono, fontSize:13, letterSpacing:'0.08em', cursor:'pointer' }}>Next Step →</button>
+                  )}
+                </div>
+              </div>
+              <StepScreen step={i} />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Setup */}
+      <section style={{ padding: isMobile ? '64px 24px' : '100px 32px', background:C.surface, borderTop:`1px solid ${C.border}` }}>
+        <div style={{ maxWidth:1280, margin:'0 auto' }}>
+          <div style={{ display:'grid', gridTemplateColumns: isSmall ? '1fr' : '1fr 1fr', gap: isSmall ? 48 : 80, alignItems:'center' }}>
+            <div>
+              <SectionLabel>— Onboarding</SectionLabel>
+              <h2 style={{ fontFamily:F.display, fontSize: isMobile ? 36 : 'clamp(36px,4vw,60px)', color:C.text, letterSpacing:'0.06em', margin:'0 0 24px', lineHeight:1 }}>
+                SETUP IN ONE DAY. RUNNING BY MORNING.
+              </h2>
+              <p style={{ fontFamily:F.body, fontSize:17, color:C.muted, lineHeight:1.8, margin:'0 0 32px' }}>
+                No IT department required. You get access, configure your campaign, and your first brief lands the next morning.
+              </p>
+              <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+                {['Invite-based onboarding — your team gets access same day','No IT required — browser-based, zero install','Import your existing contacts in minutes','Pipeline configured and brief running by Day 1'].map((item, i) => (
+                  <div key={i} style={{ display:'flex', gap:16, alignItems:'flex-start' }}>
+                    <div style={{ width:20, height:20, border:`1px solid ${C.accent}`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1 }}>
+                      <span style={{ color:C.accent, fontSize:13 }}>✓</span>
+                    </div>
+                    <span style={{ fontFamily:F.body, fontSize:16, color:C.muted, lineHeight:1.6 }}>{item}</span>
+                  </div>
+                ))}
+              </div>
+              <button onClick={() => navigate('request-access')} style={{
+                background:C.accent, color:'#fff', border:'none', padding:'14px 32px',
+                fontFamily:F.mono, fontSize:14, letterSpacing:'0.1em', textTransform:'uppercase',
+                cursor:'pointer', marginTop:36, width: isMobile ? '100%' : 'auto',
+              }}>Request Access →</button>
+            </div>
+            <div>
+              {[
+                { day:'Day 1 · Morning',   label:'Access granted. Team invited.' },
+                { day:'Day 1 · Afternoon', label:'Contacts imported. Pipeline configured.' },
+                { day:'Day 1 · Evening',   label:'Brief settings locked in.' },
+                { day:'Day 2 · 6:45 AM',   label:'First brief in your inbox.', highlight:true },
+              ].map((item, i, arr) => (
+                <div key={i} style={{ display:'flex', gap:20, marginBottom: i<arr.length-1 ? 32 : 0 }}>
+                  <div style={{ display:'flex', flexDirection:'column', alignItems:'center' }}>
+                    <div style={{ width:12, height:12, background: item.highlight ? C.accent : C.border, border:`2px solid ${item.highlight ? C.accent : C.dim}`, borderRadius:'50%', flexShrink:0, marginTop:3 }} />
+                    {i<arr.length-1 && <div style={{ width:1, flex:1, background:C.border, margin:'8px 0' }} />}
+                  </div>
+                  <div>
+                    <div style={{ fontFamily:F.mono, fontSize:13, color: item.highlight ? C.accent : C.muted, letterSpacing:'0.08em', marginBottom:4 }}>{item.day}</div>
+                    <div style={{ fontFamily:F.body, fontSize:16, color: item.highlight ? C.text : C.muted }}>{item.label}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <CTABanner navigate={navigate} />
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// ABOUT PAGE
+// ─────────────────────────────────────────────
+function AboutPage({ navigate }) {
+  const { isMobile, isTablet } = useResponsive();
+  const isSmall = isMobile || isTablet;
+
+  return (
+    <div style={{ background:C.bg, paddingTop:64 }}>
+      <section style={{ padding: isMobile ? '72px 24px 56px' : '100px 32px 80px', background:C.surface, borderBottom:`1px solid ${C.border}`, position:'relative', overflow:'hidden' }}>
+        <div style={{ position:'absolute', bottom:-100, right:-100, width:400, height:400, background:`radial-gradient(circle,rgba(232,54,43,0.08) 0%,transparent 70%)`, pointerEvents:'none' }} />
+        <div style={{ maxWidth:1280, margin:'0 auto', position:'relative' }}>
+          <SectionLabel>— Who Built This</SectionLabel>
+          <h1 style={{ fontFamily:F.display, fontSize: isMobile ? 44 : 'clamp(48px,6vw,88px)', color:C.text, letterSpacing:'0.06em', margin:'0 0 20px', lineHeight:1 }}>
+            BUILT FOR CAMPAIGNS. FULL STOP.
+          </h1>
+          <p style={{ fontFamily:F.body, fontSize:18, color:C.muted, maxWidth:560, lineHeight:1.7 }}>
+            Campaign Ops Agent is purpose-built for political operations — not a generic tool dressed up for campaigns.
+          </p>
+        </div>
+      </section>
+
+      <section style={{ padding: isMobile ? '64px 24px' : '100px 32px' }}>
+        <div style={{ maxWidth:1280, margin:'0 auto' }}>
+          <div style={{ display:'grid', gridTemplateColumns: isSmall ? '1fr' : '1fr 1fr', gap: isSmall ? 56 : 100, alignItems:'start' }}>
+            <div>
+              <div style={{ fontFamily:F.mono, fontSize:13, color:C.accent, letterSpacing:'0.12em', marginBottom:28, display:'flex', alignItems:'center', gap:12 }}>
+                <div style={{ width:24, height:1, background:C.accent }} />The Origin
+              </div>
+              <p style={{ fontFamily:F.body, fontSize:17, color:C.muted, lineHeight:1.85, margin:'0 0 24px' }}>
+                Campaigns operate at a speed that most software wasn't designed for. An attack ad drops at 8 AM, a poll breaks at noon, and your team needs a response drafted, approved, and out the door before the evening news cycle — all while managing tasks, tracking contacts, and keeping every staffer aligned.
+              </p>
+              <p style={{ fontFamily:F.body, fontSize:17, color:C.muted, lineHeight:1.85, margin:'0 0 24px' }}>
+                The tools campaigns reach for — Notion, Airtable, Monday, Slack — weren't built for this. They require constant maintenance, break under pressure, and scatter information across a dozen tabs.
+              </p>
+              <p style={{ fontFamily:F.body, fontSize:17, color:C.muted, lineHeight:1.85, margin:'0 0 40px' }}>
+                Campaign Ops Agent was built from the ground up for political operations. One system. One screen. Everything your team needs to move fast, stay on message, and run a tighter race.
+              </p>
+              <button onClick={() => navigate('request-access')} style={{
+                background:C.accent, color:'#fff', border:'none', padding:'14px 32px',
+                fontFamily:F.mono, fontSize:14, letterSpacing:'0.1em', textTransform:'uppercase',
+                cursor:'pointer', width: isMobile ? '100%' : 'auto',
+              }}>Request Access →</button>
+            </div>
+            <div>
+              {[
+                { role:'THE PROBLEM',  detail:'Campaigns run on too many tools, too many Slack threads, and too many things falling through the cracks. Nothing on the market was built for campaign pace.' },
+                { role:'THE APPROACH', detail:'We built Campaign Ops Agent specifically for political operations — not adapted from a generic project management tool. Every feature is designed around how campaigns actually function.' },
+                { role:'WHY IT MATTERS', detail:'The best-run campaigns win more often. Not because of money — because of information speed, message discipline, and team alignment. That\'s what we built.' },
+              ].map((item, i) => (
+                <div key={i} style={{ border:`1px solid ${C.border}`, padding: isMobile ? '24px 20px' : '28px 28px', marginBottom:1, background:C.surface }}>
+                  <div style={{ fontFamily:F.mono, fontSize:13, color:C.accent, letterSpacing:'0.12em', marginBottom:12 }}>{item.role}</div>
+                  <div style={{ fontFamily:F.body, fontSize:15, color:C.muted, lineHeight:1.7 }}>{item.detail}</div>
+                </div>
+              ))}
+              <div style={{ border:`1px solid ${C.border}`, borderLeft:`3px solid ${C.gold}`, padding: isMobile ? '20px 20px' : '24px 28px', background:C.surface, marginTop:1 }}>
+                <div style={{ fontFamily:F.display, fontSize: isMobile ? 18 : 20, color:C.text, letterSpacing:'0.06em', lineHeight:1.3, marginBottom:12 }}>
+                  "YOUR TEAM DOESN'T HAVE TIME FOR ANOTHER SLACK THREAD."
+                </div>
+                <div style={{ fontFamily:F.mono, fontSize:13, color:C.dim, letterSpacing:'0.08em' }}>— The reason Campaign Ops Agent exists</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Values strip */}
+      <section style={{ borderTop:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}`, background:C.surface }}>
+        <div style={{ maxWidth:1280, margin:'0 auto', padding:`0 ${isMobile ? 24 : 32}px` }}>
+          <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)' }}>
+            {[
+              { label:'DIRECT',      copy:'No fluff. No startup language. No "revolutionize." Campaigns don\'t have time for it.' },
+              { label:'OPERATIONAL', copy:'Built around how campaigns actually work, not how a product manager thinks they work.' },
+              { label:'FAST',        copy:'Every feature is designed for speed. Drafts in seconds. Briefs before the first call.' },
+            ].map((v, i) => (
+              <div key={i} style={{
+                padding: isMobile ? '36px 0' : '48px 40px',
+                borderRight: !isMobile && i<2 ? `1px solid ${C.border}` : 'none',
+                borderBottom: isMobile && i<2 ? `1px solid ${C.border}` : 'none',
+              }}>
+                <div style={{ fontFamily:F.mono, fontSize:13, color:C.accent, letterSpacing:'0.15em', marginBottom:14 }}>{v.label}</div>
+                <div style={{ fontFamily:F.body, fontSize:16, color:C.muted, lineHeight:1.7 }}>{v.copy}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <CTABanner navigate={navigate} />
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// REQUEST ACCESS PAGE
+// ─────────────────────────────────────────────
+function RequestAccessPage({ navigate }) {
+  const { isMobile, isTablet } = useResponsive();
+  const isSmall = isMobile || isTablet;
+
+  const [form, setForm] = React.useState({ name:'', email:'', campaign:'', office:'', cycle:'', source:'', message:'' });
+  const [submitted, setSubmitted] = React.useState(false);
+  const [focused, setFocused] = React.useState(null);
+
+  const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!form.name || !form.email || !form.campaign) return;
+    setSubmitted(true);
+  };
+
+  const inputStyle = (field) => ({
+    width:'100%', background:C.surface2,
+    border:`1px solid ${focused===field ? C.accent : C.border}`,
+    color:C.text, padding:'14px 16px', fontFamily:F.mono, fontSize:14,
+    outline:'none', boxSizing:'border-box', transition:'border-color 0.15s',
+  });
+
+  const labelStyle = { fontFamily:F.mono, fontSize:13, color:C.muted, letterSpacing:'0.1em', textTransform:'uppercase', display:'block', marginBottom:8 };
+
+  const selectStyle = (field) => ({
+    ...inputStyle(field), appearance:'none', cursor:'pointer',
+    backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23d0d0d8' stroke-width='1.5' fill='none'/%3E%3C/svg%3E")`,
+    backgroundRepeat:'no-repeat', backgroundPosition:'right 14px center', paddingRight:36,
+  });
+
+  return (
+    <div style={{ background:C.bg, paddingTop:64, minHeight:'100vh' }}>
+      <section style={{ padding: isMobile ? '64px 24px 80px' : '100px 32px' }}>
+        <div style={{ maxWidth:1100, width:'100%', margin:'0 auto', display:'grid', gridTemplateColumns: isSmall ? '1fr' : '1fr 1fr', gap: isSmall ? 48 : 100, alignItems:'start' }}>
+
+          {/* Left context */}
+          <div style={{ position: isSmall ? 'relative' : 'sticky', top:100 }}>
+            <SectionLabel>— Request Access</SectionLabel>
+            <h1 style={{ fontFamily:F.display, fontSize: isMobile ? 44 : 'clamp(44px,5vw,72px)', color:C.text, letterSpacing:'0.06em', margin:'0 0 24px', lineHeight:1 }}>
+              GET YOUR TEAM IN THE ROOM.
+            </h1>
+            <p style={{ fontFamily:F.body, fontSize:17, color:C.muted, lineHeight:1.8, margin:'0 0 40px', maxWidth:420 }}>
+              We review access requests within 24 hours. If you're a fit, you'll receive an invite link directly. No sales call required.
+            </p>
+            {[
+              { step:'01', label:'Submit request', detail:'Takes 2 minutes.' },
+              { step:'02', label:'We review',      detail:'Within 24 hours.' },
+              { step:'03', label:'Invite lands',   detail:'Start same day.' },
+            ].map((s, i) => (
+              <div key={i} style={{ display:'flex', gap:20, marginBottom:24 }}>
+                <div style={{ width:36, height:36, border:`1px solid ${C.border}`, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:F.mono, fontSize:13, color:C.accent, flexShrink:0 }}>{s.step}</div>
+                <div>
+                  <div style={{ fontFamily:F.mono, fontSize:14, color:C.text, marginBottom:3 }}>{s.label}</div>
+                  <div style={{ fontFamily:F.mono, fontSize:13, color:C.muted }}>{s.detail}</div>
+                </div>
+              </div>
+            ))}
+            {!isMobile && (
+              <div style={{ marginTop:40, borderLeft:`3px solid ${C.accent}`, paddingLeft:20 }}>
+                <div style={{ fontFamily:F.body, fontSize:16, color:C.muted, lineHeight:1.7, fontStyle:'italic' }}>
+                  "Your morning brief is ready before your first call."
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Form */}
+          <div>
+            {submitted ? (
+              <div style={{ border:`1px solid ${C.border}`, borderTop:`3px solid ${C.accent}`, background:C.surface, padding: isMobile ? '40px 24px' : '48px 40px', textAlign:'center' }}>
+                <div style={{ width:48, height:48, border:`1px solid ${C.accent}`, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 24px', fontFamily:F.mono, fontSize:20, color:C.accent }}>✓</div>
+                <div style={{ fontFamily:F.display, fontSize:32, color:C.text, letterSpacing:'0.08em', marginBottom:16 }}>REQUEST RECEIVED.</div>
+                <p style={{ fontFamily:F.body, fontSize:16, color:C.muted, lineHeight:1.7, margin:'0 0 28px' }}>
+                  We'll review your request and get back within 24 hours. If you're a fit, your invite link will arrive directly.
+                </p>
+                <div style={{ fontFamily:F.mono, fontSize:13, color:C.dim, letterSpacing:'0.08em' }}>— The Campaign Ops Agent Team</div>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} style={{ border:`1px solid ${C.border}`, borderTop:`3px solid ${C.accent}`, background:C.surface, padding: isMobile ? '28px 20px' : '40px' }}>
+                <div style={{ fontFamily:F.display, fontSize:24, color:C.text, letterSpacing:'0.08em', marginBottom:28 }}>ACCESS REQUEST</div>
+
+                <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:16, marginBottom:20 }}>
+                  <div>
+                    <label style={labelStyle}>Name <span style={{ color:C.accent }}>*</span></label>
+                    <input type="text" value={form.name} onChange={set('name')} placeholder="Full name" required
+                      style={inputStyle('name')} onFocus={() => setFocused('name')} onBlur={() => setFocused(null)} />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Email <span style={{ color:C.accent }}>*</span></label>
+                    <input type="email" value={form.email} onChange={set('email')} placeholder="you@campaign.com" required
+                      style={inputStyle('email')} onFocus={() => setFocused('email')} onBlur={() => setFocused(null)} />
+                  </div>
+                </div>
+
+                <div style={{ marginBottom:20 }}>
+                  <label style={labelStyle}>Campaign / Organization <span style={{ color:C.accent }}>*</span></label>
+                  <input type="text" value={form.campaign} onChange={set('campaign')} placeholder="Smith for Senate" required
+                    style={inputStyle('campaign')} onFocus={() => setFocused('campaign')} onBlur={() => setFocused(null)} />
+                </div>
+
+                <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:16, marginBottom:20 }}>
+                  <div>
+                    <label style={labelStyle}>Office Sought</label>
+                    <select value={form.office} onChange={set('office')} style={selectStyle('office')} onFocus={() => setFocused('office')} onBlur={() => setFocused(null)}>
+                      <option value="">Select office</option>
+                      {['House','Senate','Governor','State Legislature','Other'].map(o => <option key={o} value={o}>{o}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Cycle Year</label>
+                    <select value={form.cycle} onChange={set('cycle')} style={selectStyle('cycle')} onFocus={() => setFocused('cycle')} onBlur={() => setFocused(null)}>
+                      <option value="">Select cycle</option>
+                      {['2026','2028'].map(yr => <option key={yr} value={yr}>{yr}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ marginBottom:20 }}>
+                  <label style={labelStyle}>How did you hear about Campaign Ops Agent?</label>
+                  <select value={form.source} onChange={set('source')} style={selectStyle('source')} onFocus={() => setFocused('source')} onBlur={() => setFocused(null)}>
+                    <option value="">Select one</option>
+                    {['Word of mouth','Conference / event','Social media','Search','Press coverage','Other'].map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+
+                <div style={{ marginBottom:28 }}>
+                  <label style={labelStyle}>Brief message <span style={{ color:C.dim }}>(optional)</span></label>
+                  <textarea value={form.message} onChange={set('message')}
+                    placeholder="Tell us about your race, timeline, or anything that would help us set you up."
+                    rows={4} style={{ ...inputStyle('message'), resize:'vertical', lineHeight:1.6 }}
+                    onFocus={() => setFocused('message')} onBlur={() => setFocused(null)} />
+                </div>
+
+                <button type="submit" style={{
+                  width:'100%', background:C.accent, color:'#fff', border:'none',
+                  padding:'18px', fontFamily:F.mono, fontSize:14, letterSpacing:'0.12em',
+                  textTransform:'uppercase', cursor:'pointer', transition:'opacity 0.15s',
+                }}
+                  onMouseEnter={e => e.currentTarget.style.opacity='0.88'}
+                  onMouseLeave={e => e.currentTarget.style.opacity='1'}
+                >Submit Request →</button>
+
+                <div style={{ fontFamily:F.mono, fontSize:13, color:C.dim, textAlign:'center', marginTop:16, letterSpacing:'0.06em' }}>
+                  Name · Email · Campaign are required. We review within 24 hours.
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// APP + ROUTING
+// ─────────────────────────────────────────────
+function LoginRedirect({ navigate }) {
+  React.useEffect(() => {
+    const t = setTimeout(() => navigate('home'), 3000);
+    return () => clearTimeout(t);
+  }, []);
+  return (
+    <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:C.bg, paddingTop:64 }}>
+      <div style={{ textAlign:'center' }}>
+        <div style={{ fontFamily:F.mono, fontSize:13, color:C.muted, letterSpacing:'0.1em', marginBottom:16 }}>REDIRECTING TO LOGIN…</div>
+        <div style={{ fontFamily:F.display, fontSize:32, color:C.text, letterSpacing:'0.08em' }}>HOLD TIGHT.</div>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [page, setPage] = React.useState(() => window.location.hash.replace('#','') || 'home');
+
+  const navigate = React.useCallback((to) => {
+    setPage(to);
+    window.location.hash = to;
+    window.scrollTo({ top:0 });
+  }, []);
+
+  React.useEffect(() => {
+    const fn = () => {
+      const hash = window.location.hash.replace('#','') || 'home';
+      setPage(hash);
+      window.scrollTo({ top:0 });
+    };
+    window.addEventListener('hashchange', fn);
+    return () => window.removeEventListener('hashchange', fn);
+  }, []);
+
+  const renderPage = () => {
+    switch(page) {
+      case 'home':           return <HomePage navigate={navigate} />;
+      case 'features':       return <FeaturesPage navigate={navigate} />;
+      case 'how-it-works':   return <HowItWorksPage navigate={navigate} />;
+      case 'about':          return <AboutPage navigate={navigate} />;
+      case 'request-access': return <RequestAccessPage navigate={navigate} />;
+      case 'login':          return <LoginRedirect navigate={navigate} />;
+      default:               return <HomePage navigate={navigate} />;
+    }
+  };
+
+  return (
+    <div>
+      <Nav currentPage={page} navigate={navigate} />
+      <main key={page} className="page-enter">
+        {renderPage()}
+      </main>
+      <Footer navigate={navigate} />
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
