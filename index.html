@@ -6,6 +6,8 @@
   <title>Campaign Ops Agent — AI-Powered Campaign Command Center</title>
   <meta name="description" content="Campaign Ops Agent gives your team AI-powered briefs, opposition research, rapid response drafts, and real-time task management — built for the speed of a campaign." />
 
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iOTAiIHN0cm9rZT0iI2ZmNDIzOCIgc3Ryb2tlLXdpZHRoPSI4Ii8+PHBhdGggZD0iTTEwMCA1IFY0MCBNMTAwIDE2MCBWMTk1IE01IDEwMCBINDAgTTE2MCAxMDAgSDE5NSIgc3Ryb2tlPSIjZmY0MjM4IiBzdHJva2Utd2lkdGg9IjgiIHN0cm9rZS1saW5lY2FwPSJzcXVhcmUiLz48cGF0aCBkPSJNMTAwIDY1IEEzNSAzNSAwIDEgMCAxMzUgMTAwIiBzdHJva2U9IiNmMGVmZWMiIHN0cm9rZS13aWR0aD0iMTQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgZmlsbD0ibm9uZSIgdHJhbnNmb3JtPSJyb3RhdGUoMjUgMTAwIDEwMCkiLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjE0IiBmaWxsPSIjZmY0MjM4Ii8+PC9zdmc+" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -93,12 +95,14 @@ function useResponsive() {
 function Logo({ size = 32 }) {
   return (
     <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-      <div style={{
-        width:size, height:size,
-        background:`linear-gradient(135deg,${C.accent} 0%,${C.gold} 100%)`,
-        display:'flex', alignItems:'center', justifyContent:'center',
-        fontSize:size*0.45, fontFamily:F.display, color:'#fff', flexShrink:0,
-      }}>CO</div>
+      <svg width={size} height={size} viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink:0 }}>
+        <circle cx="100" cy="100" r="90" stroke="#ff4238" strokeWidth="3" />
+        <circle cx="100" cy="100" r="60" stroke="#ff4238" strokeWidth="2" opacity="0.5" />
+        <path d="M100 5 V40 M100 160 V195 M5 100 H40 M160 100 H195" stroke="#ff4238" strokeWidth="3" strokeLinecap="square" />
+        <path d="M100 65 A35 35 0 1 0 135 100" stroke="#f0efec" strokeWidth="6" strokeLinecap="round" fill="none" transform="rotate(25 100 100)" />
+        <circle cx="100" cy="100" r="5" fill="#ff4238" />
+        <path d="M100 28 V36 M100 164 V172 M28 100 H36 M164 100 H172" stroke="#c9a235" strokeWidth="2" />
+      </svg>
       <span style={{
         fontFamily:F.display, fontSize:size*0.72,
         letterSpacing:'0.15em', color:C.text, lineHeight:1,
