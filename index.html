@@ -221,7 +221,7 @@ function Footer({ navigate }) {
   ];
   return (
     <footer style={{
-      background:C.surface, borderTop:`1px solid ${C.border}`,
+      background:C.surface, borderTop:`2px solid ${C.accent}`,
       padding: isMobile ? '48px 24px 36px' : '48px 64px',
     }}>
       <div style={{
@@ -282,7 +282,7 @@ function SectionLabel({ children }) {
   return (
     <div style={{
       fontFamily:F.mono, fontSize:13, letterSpacing:'0.15em',
-      color:C.accent, textTransform:'uppercase', marginBottom:16,
+      color:C.accent, textTransform:'uppercase', marginBottom:16, borderLeft:`2px solid ${C.accent}`, paddingLeft:12,
     }}>{children}</div>
   );
 }
@@ -499,10 +499,10 @@ function HomePage({ navigate }) {
           display:'flex', alignItems:'center', justifyContent:'center',
           gap: isMobile ? 16 : 48, flexWrap:'wrap', textAlign:'center',
         }}>
-          <span style={{ fontFamily:F.mono, fontSize:13, color:C.dim, letterSpacing:'0.12em', textTransform:'uppercase' }}>
+          <span style={{ fontFamily:F.mono, fontSize:13, color:C.accent, letterSpacing:'0.12em', textTransform:'uppercase' }}>
             BUILT BY OPERATIVES, FOR OPERATIVES.
           </span>
-          {!isMobile && <div style={{ width:1, height:20, background:C.border }} />}
+          {!isMobile && <div style={{ width:1, height:20, background:C.gold }} />}
           <span style={{ fontFamily:F.mono, fontSize:13, color:C.muted, letterSpacing:'0.1em' }}>
             State Legislative · Congressional · Gubernatorial
           </span>
@@ -530,8 +530,8 @@ function HomePage({ navigate }) {
                 onMouseEnter={() => setHoveredCard(i)}
                 onMouseLeave={() => setHoveredCard(null)}
                 style={{
-                  background: hoveredCard===i ? C.surface2 : C.surface,
-                  padding: isMobile ? '28px 24px' : '36px 64px',
+                  background: hoveredCard===i ? C.surface2 : C.surface, borderTop: `2px solid ${hoveredCard===i ? C.accent : C.border}`,
+                  padding: isMobile ? '28px 24px' : '36px 32px',
                   transition:'background 0.2s',
                 }}>
                 <div style={{ fontFamily:F.mono, fontSize:22, color: hoveredCard===i ? C.accent : C.dim, marginBottom:18, transition:'color 0.2s' }}>{feat.icon}</div>
@@ -605,7 +605,7 @@ function HomePage({ navigate }) {
                 <div style={{
                   width:48, height:48, border:`1px solid ${C.accent}`,
                   display:'flex', alignItems:'center', justifyContent:'center',
-                  fontFamily:F.mono, fontSize:14, color:C.accent, background:C.bg, marginBottom:24,
+                  fontFamily:F.mono, fontSize:14, color:C.accent, background:'rgba(232,54,43,0.1)', marginBottom:24,
                 }}>{step.num}</div>
                 <div style={{ fontFamily:F.display, fontSize:28, letterSpacing:'0.08em', color:C.text, marginBottom:14 }}>{step.label}</div>
                 <div style={{ fontFamily:F.body, fontSize:17, color:C.muted, lineHeight:1.7 }}>{step.copy}</div>
@@ -615,7 +615,7 @@ function HomePage({ navigate }) {
           <div style={{ marginTop:64, textAlign: isMobile ? 'left' : 'center' }}>
             <button onClick={() => navigate('how-it-works')} style={{
               background:'transparent', color:C.text, border:`1px solid ${C.border}`,
-              padding:'14px 64px', fontFamily:F.mono, fontSize:14, letterSpacing:'0.1em',
+              padding:'14px 32px', fontFamily:F.mono, fontSize:14, letterSpacing:'0.1em',
               textTransform:'uppercase', cursor:'pointer', width: isMobile ? '100%' : 'auto',
             }}>See Full Walkthrough →</button>
           </div>
@@ -674,7 +674,7 @@ function FeaturesPage({ navigate }) {
   ];
 
   const FeatureMockup = ({ index }) => {
-    const base = { background:C.surface2, border:`1px solid ${C.border}`, padding:20 };
+    const base = { background:C.surface2, border:`1px solid ${C.border}`, borderTop:`2px solid ${C.accent}`, padding:20 };
     const panels = [
       <div style={base}>
         <div style={{ fontFamily:F.mono, fontSize:13, color:C.accent, marginBottom:14, letterSpacing:'0.1em' }}>MORNING BRIEF · APR 27</div>
@@ -1005,7 +1005,7 @@ function HowItWorksPage({ navigate }) {
                 ))}
               </div>
               <button onClick={() => navigate('request-access')} style={{
-                background:C.accent, color:'#fff', border:'none', padding:'14px 64px',
+                background:C.accent, color:'#fff', border:'none', padding:'14px 32px',
                 fontFamily:F.mono, fontSize:14, letterSpacing:'0.1em', textTransform:'uppercase',
                 cursor:'pointer', marginTop:36, width: isMobile ? '100%' : 'auto',
               }}>Request Access →</button>
@@ -1077,7 +1077,7 @@ function AboutPage({ navigate }) {
                 Campaign Ops Agent was built from the ground up for political operations. One system. One screen. Everything your team needs to move fast, stay on message, and run a tighter race.
               </p>
               <button onClick={() => navigate('request-access')} style={{
-                background:C.accent, color:'#fff', border:'none', padding:'14px 64px',
+                background:C.accent, color:'#fff', border:'none', padding:'14px 32px',
                 fontFamily:F.mono, fontSize:14, letterSpacing:'0.1em', textTransform:'uppercase',
                 cursor:'pointer', width: isMobile ? '100%' : 'auto',
               }}>Request Access →</button>
@@ -1105,7 +1105,7 @@ function AboutPage({ navigate }) {
       </section>
 
       {/* Values strip */}
-      <section style={{ borderTop:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}`, background:C.surface }}>
+      <section style={{ borderTop:`2px solid ${C.gold}`, borderBottom:`1px solid ${C.border}`, background:C.surface }}>
         <div style={{ maxWidth:1280, margin:'0 auto', padding:`0 ${isMobile ? 24 : 64}px` }}>
           <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)' }}>
             {[
