@@ -530,11 +530,11 @@ function HomePage({ navigate }) {
                 onMouseEnter={() => setHoveredCard(i)}
                 onMouseLeave={() => setHoveredCard(null)}
                 style={{
-                  background: hoveredCard===i ? C.surface2 : C.surface, borderTop: `2px solid ${C.gold}`,
+                  background: hoveredCard===i ? C.surface2 : C.surface, borderTop: `2px solid ${hoveredCard===i ? C.accent : C.border}`,
                   padding: isMobile ? '28px 24px' : '36px 32px',
                   transition:'background 0.2s',
                 }}>
-                <div style={{ fontFamily:F.mono, fontSize:22, color: hoveredCard===i ? C.accent : C.dim, marginBottom:18, transition:'color 0.2s' }}>{feat.icon}</div>
+                <div style={{ fontFamily:F.mono, fontSize:22, color: C.accent, marginBottom:18 }}>{feat.icon}</div>
                 <div style={{ fontFamily:F.display, fontSize:24, letterSpacing:'0.08em', color:C.text, marginBottom:12 }}>{feat.name}</div>
                 <div style={{ fontFamily:F.body, fontSize:16, color:C.muted, lineHeight:1.6 }}>{feat.copy}</div>
               </div>
