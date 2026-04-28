@@ -670,10 +670,16 @@ function FeaturesPage({ navigate }) {
       bullets:['Platform-specific formatting','Draft queue','Approval workflow','Brand voice consistency'],
     },
     {
-      num:'06', name:'Tasks & Contacts',
+      num:'06', name:'Task Management',
       headline:'THE TEAM KNOWS THE PLAY.',
-      desc:'Assign tasks, set deadlines, manage your contact list — without leaving the app. Every donor, journalist, and ally one search away.',
-      bullets:['Task assignment and status','Deadline tracking','Contact database: donors, press, allies','Role-based access: Admin / Staff / Viewer'],
+      desc:'Assign tasks, set deadlines, and keep every staffer accountable — without leaving the app. No separate project manager required.',
+      bullets:['Task assignment and status','Deadline tracking','Priority and ownership at a glance','Role-based access: Admin / Staff / Viewer'],
+    },
+    {
+      num:'07', name:'CRM',
+      headline:'EVERY DONOR, JOURNALIST, AND ALLY — ONE SEARCH AWAY.',
+      desc:'A purpose-built CRM for political operations. Track donors, press contacts, volunteers, and allies in one place — with the context, history, and segmentation your team actually uses on a campaign.',
+      bullets:['Unified contact database: donors, press, volunteers, allies','Tags, segments, and saved filters','Interaction history and notes per contact','Quick-add from briefs, rapid response, and social'],
     },
   ];
 
@@ -738,7 +744,7 @@ function FeaturesPage({ navigate }) {
       </div>,
       <div style={base}>
         <div style={{ fontFamily:F.mono, fontSize:13, color:C.text, marginBottom:14, letterSpacing:'0.1em' }}>TODAY'S TASKS</div>
-        {[['Send debate prep brief','M. Chen',true],['Update donor contacts','J. Walsh',false],['Review social queue','You',false]].map(([task,person,done], i) => (
+        {[['Send debate prep brief','M. Chen',true],['Confirm venue for town hall','J. Walsh',false],['Review social queue','You',false]].map(([task,person,done], i) => (
           <div key={i} style={{ display:'flex', gap:12, alignItems:'center', padding:'9px 0', borderBottom:`1px solid ${C.border}` }}>
             <div style={{ width:16, height:16, border:`1px solid ${done?C.accent:C.border}`, background:done?C.accent:'transparent', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
               {done && <span style={{ color:'#fff', fontSize:13 }}>✓</span>}
@@ -747,6 +753,21 @@ function FeaturesPage({ navigate }) {
             <span style={{ fontFamily:F.mono, fontSize:13, color:C.muted }}>{person}</span>
           </div>
         ))}
+      </div>,
+      <div style={base}>
+        <div style={{ fontFamily:F.mono, fontSize:13, color:C.gold, marginBottom:14, letterSpacing:'0.1em' }}>CONTACTS · 1,284 RECORDS</div>
+        {[['R. Alvarez','DONOR','Max-out · 2024'],['K. Patel','PRESS','Politico · National'],['S. Nguyen','ALLY','SEIU Local 32']].map(([name,tag,detail], i) => (
+          <div key={i} style={{ display:'flex', gap:10, alignItems:'center', padding:'10px 0', borderBottom:`1px solid ${C.border}` }}>
+            <span style={{ fontFamily:F.mono, fontSize:13, padding:'2px 8px',
+              background: tag==='DONOR' ? 'rgba(201,162,53,0.15)' : tag==='PRESS' ? 'rgba(232,54,43,0.15)' : C.surface3,
+              color: tag==='DONOR' ? C.gold : tag==='PRESS' ? C.accent : C.muted,
+              border:`1px solid ${tag==='DONOR' ? 'rgba(201,162,53,0.3)' : tag==='PRESS' ? 'rgba(232,54,43,0.3)' : C.border}`,
+            }}>{tag}</span>
+            <span style={{ fontFamily:F.mono, fontSize:13, color:C.text, flex:1 }}>{name}</span>
+            <span style={{ fontFamily:F.mono, fontSize:13, color:C.muted }}>{detail}</span>
+          </div>
+        ))}
+        <div style={{ fontFamily:F.mono, fontSize:13, color:C.dim, marginTop:14 }}>Filtered: NY-12 · Last touched ≤ 30d</div>
       </div>,
     ];
     return panels[index] || null;
