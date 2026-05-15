@@ -893,6 +893,27 @@ function FeaturesPage({ navigate }) {
         </section>
       ))}
 
+      {/* Still shipping */}
+      <section style={{ padding: isMobile ? '56px 24px' : '80px 64px', background:C.bg, borderBottom:`1px solid ${C.border}` }}>
+        <div style={{ maxWidth:1280, margin:'0 auto', display:'grid', gridTemplateColumns: isSmall ? '1fr' : '1fr 1fr', gap: isSmall ? 28 : 80, alignItems:'center' }}>
+          <div>
+            <SectionLabel>— Still Shipping</SectionLabel>
+            <h2 style={{ fontFamily:F.display, fontSize: isMobile ? 36 : 'clamp(36px,4vw,56px)', color:C.text, letterSpacing:'0.06em', margin:0, lineHeight:1.05 }}>
+              NEW FEATURES, EVERY WEEK.
+            </h2>
+          </div>
+          <div style={{ borderLeft: isSmall ? 'none' : `1px solid ${C.border}`, paddingLeft: isSmall ? 0 : 32 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:14 }}>
+              <span style={{ width:8, height:8, borderRadius:'50%', background:C.accent, boxShadow:`0 0 10px ${C.accent}` }} />
+              <span style={{ fontFamily:F.mono, fontSize:13, color:C.accent, letterSpacing:'0.1em', textTransform:'uppercase' }}>Live build</span>
+            </div>
+            <p style={{ fontFamily:F.body, fontSize:17, color:C.muted, lineHeight:1.7, margin:0 }}>
+              Campaigns move. So does the product. New surfaces, sources, and integrations land continuously — your team gets them the day they ship.
+            </p>
+          </div>
+        </div>
+      </section>
+
       <CTABanner navigate={navigate} />
     </div>
   );
