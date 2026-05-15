@@ -1300,7 +1300,7 @@ function RequestAccessPage({ navigate }) {
         <div style={{ maxWidth:1100, width:'100%', margin:'0 auto', display:'grid', gridTemplateColumns: isSmall ? '1fr' : '1fr 1fr', gap: isSmall ? 48 : 100, alignItems:'start' }}>
 
           {/* Left context */}
-          <div style={{ position: isSmall ? 'relative' : 'sticky', top:100 }}>
+          <div style={{ position: isSmall ? 'relative' : 'sticky', top: isSmall ? 'auto' : 100 }}>
             <SectionLabel>— Request Access</SectionLabel>
             <h1 style={{ fontFamily:F.display, fontSize: isMobile ? 44 : 'clamp(44px,5vw,72px)', color:C.text, letterSpacing:'0.06em', margin:'0 0 24px', lineHeight:1 }}>
               GET YOUR TEAM IN THE ROOM.
