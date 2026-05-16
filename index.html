@@ -591,7 +591,7 @@ function HomePage({ navigate }) {
                 <div style={{ fontFamily:F.mono, fontSize:13, color:C.accent, letterSpacing:'0.08em' }}>▶ RUN NOW</div>
               </div>
               {[
-                { stage:'CRON',    detail:'Triggered 06:00 AM',         status:'done' },
+                { stage:'TRIGGER', detail:'Scheduled 06:00 AM',         status:'done' },
                 { stage:'FETCH',   detail:'18 sources · 142 stories',   status:'done' },
                 { stage:'TAG',     detail:'Haiku · scored & grouped',   status:'done' },
                 { stage:'AI',      detail:'Sonnet · brief + talking points', status:'live' },
@@ -661,12 +661,12 @@ function HomePage({ navigate }) {
               <p style={{ fontFamily:F.body, fontSize:17, color:C.muted, lineHeight:1.8, margin:'0 0 18px' }}>
                 Every record is scoped to a single campaign tenant — opposition research,
                 donor lists, message drafts, audit history. Nothing crosses lines, ever.
-                Roles from viewer to superadmin control who can do what.
+                Role-based access controls who can do what.
               </p>
               <p style={{ fontFamily:F.body, fontSize:17, color:C.muted, lineHeight:1.8, margin:'0 0 0' }}>
-                Every sensitive action lands on the audit log. Monthly AI budget caps and
-                rate-limit guards stop runaway spend. Strict Content Security Policy and
-                timing-safe authentication ship by default — not as a paid add-on.
+                Every sensitive action lands on the audit log. Monthly AI budget caps
+                prevent runaway spend before it starts. Abuse protections and hardened
+                defaults ship across the platform — not as a paid add-on.
               </p>
             </div>
             {/* Security pillars */}
@@ -674,8 +674,8 @@ function HomePage({ navigate }) {
               {[
                 { label:'TENANT-SCOPED', copy:'Your records, no one else\'s.' },
                 { label:'AUDIT LOG',     copy:'Every sensitive action, timestamped.' },
-                { label:'ROLES',         copy:'Viewer / Staff / Admin / Superadmin.' },
-                { label:'RATE-LIMITED',  copy:'Spend caps + abuse caps, surfaced in-app.' },
+                { label:'ROLE-BASED',    copy:'Access controls for every staffer.' },
+                { label:'PROTECTED',     copy:'Spend caps and abuse guards, surfaced in-app.' },
               ].map((p, i) => (
                 <div key={i} style={{ background:C.bg, padding: isMobile ? '24px 20px' : '28px 24px', borderTop:`2px solid ${C.gold}` }}>
                   <div style={{ fontFamily:F.mono, fontSize:13, color:C.gold, letterSpacing:'0.12em', marginBottom:10 }}>{p.label}</div>
@@ -727,8 +727,8 @@ function FeaturesPage({ navigate }) {
     {
       num:'05', name:'Pipeline & Node Editor',
       headline:'WATCH THE BRIEF GET BUILT — AND TUNE IT LIVE.',
-      desc:'An animated pipeline shows every stage from cron to deliver, with live status and per-run cost. Tune the system prompt, model, and temperature in the Editor and stream a test run before saving.',
-      bullets:['Cron → fetch → tag → AI → save → deliver','Live status polling and per-run cost','▶ Run Now to trigger an immediate run','Live-stream a test run before saving'],
+      desc:'An animated pipeline shows every stage from trigger to deliver, with live status and per-run cost. Tune the system prompt, model, and temperature in the Editor and stream a test run before saving.',
+      bullets:['Trigger → fetch → tag → AI → save → deliver','Live status polling and per-run cost','▶ Run Now to trigger an immediate run','Live-stream a test run before saving'],
     },
     {
       num:'06', name:'CRM',
@@ -740,13 +740,13 @@ function FeaturesPage({ navigate }) {
       num:'07', name:'Tasks',
       headline:'THE TEAM KNOWS THE PLAY.',
       desc:'Assign action items with priority, status, owner, and due date — without leaving the app. No separate project manager required, no extra Slack thread, no excuses.',
-      bullets:['Priority, status, assignee, and due date','Scoped to your campaign tenant','Roles: Viewer / Staff / Admin / Superadmin','Audit trail on every change'],
+      bullets:['Priority, status, assignee, and due date','Scoped to your campaign tenant','Role-based access for every staffer','Audit trail on every change'],
     },
     {
       num:'08', name:'Multi-Tenant & Governance',
       headline:'MULTI-CAMPAIGN BY DESIGN. AUDITED BY DEFAULT.',
       desc:'Every record is scoped to a campaign — nothing about the candidate, district, or branding is hardcoded. Monthly AI budget caps, a full audit log, and rate-limit guards keep spend and access in line.',
-      bullets:['Per-tenant config: thresholds, channels, sources','Monthly AI budget caps surfaced in-app','Audit log on every sensitive action','Rate-limit guards with 429 / 402 banners'],
+      bullets:['Per-tenant config: thresholds, channels, sources','Monthly AI budget caps surfaced in-app','Audit log on every sensitive action','Abuse and spend guards, surfaced in-app'],
     },
   ];
 
@@ -829,7 +829,7 @@ function FeaturesPage({ navigate }) {
           <div style={{ fontFamily:F.mono, fontSize:13, color:C.accent }}>▶ RUN NOW</div>
         </div>
         {[
-          { stage:'CRON',    detail:'06:00 AM',                 status:'done' },
+          { stage:'TRIGGER', detail:'06:00 AM',                 status:'done' },
           { stage:'FETCH',   detail:'18 sources · 142 stories', status:'done' },
           { stage:'TAG',     detail:'Haiku · grouped',          status:'done' },
           { stage:'AI',      detail:'Sonnet · drafting',        status:'live' },
@@ -947,7 +947,7 @@ function FeaturesPage({ navigate }) {
               <span style={{ fontFamily:F.mono, fontSize:13, color:C.gold, letterSpacing:'0.1em', textTransform:'uppercase' }}>Secured by default</span>
             </div>
             <p style={{ fontFamily:F.body, fontSize:17, color:C.muted, lineHeight:1.7, margin:0 }}>
-              Tenant-scoped records. Role-based access from viewer to superadmin. Audit log on every sensitive action. Rate-limit guards on every paid route. Strict Content Security Policy and timing-safe authentication — shipped by default, not as a paid add-on.
+              Tenant-scoped records — opposition research, donor lists, audit history, all isolated. Role-based access. A full audit log. Abuse and spend guards across the platform — by default, not by upgrade.
             </p>
           </div>
         </div>
