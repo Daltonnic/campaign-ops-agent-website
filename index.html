@@ -576,7 +576,7 @@ function HomePage({ navigate }) {
                 attack ad while your field director needs a contact pull.
               </p>
               <p style={{ fontFamily:F.body, fontSize:17, color:C.muted, lineHeight:1.8, margin:'0 0 36px' }}>
-                Campaign Ops collapses that into one AI-driven system. One login. One screen. Every campaign in its own tenant.
+                Campaign Ops collapses that into one AI-driven system. One login. One screen. Every campaign walled off from every other.
               </p>
               <button onClick={() => navigate('features')} style={{
                 background:'transparent', color:C.text, border:`1px solid ${C.border}`,
@@ -591,7 +591,7 @@ function HomePage({ navigate }) {
                 <div style={{ fontFamily:F.mono, fontSize:13, color:C.accent, letterSpacing:'0.08em' }}>▶ RUN NOW</div>
               </div>
               {[
-                { stage:'CRON',    detail:'Triggered 06:00 AM',         status:'done' },
+                { stage:'TRIGGER', detail:'Scheduled 06:00 AM',         status:'done' },
                 { stage:'FETCH',   detail:'18 sources · 142 stories',   status:'done' },
                 { stage:'TAG',     detail:'Haiku · scored & grouped',   status:'done' },
                 { stage:'AI',      detail:'Sonnet · brief + talking points', status:'live' },
@@ -648,6 +648,45 @@ function HomePage({ navigate }) {
         </div>
       </section>
 
+      {/* SECURITY & DATA */}
+      <section style={{ padding: isMobile ? '72px 24px' : '120px 64px', background:C.surface, borderTop:`1px solid ${C.border}` }}>
+        <div style={{ maxWidth:1280, margin:'0 auto' }}>
+          <div style={{ display:'grid', gridTemplateColumns: isSmall ? '1fr' : '1fr 1fr', gap: isSmall ? 48 : 80, alignItems:'center' }}>
+            <div>
+              <SectionLabel color={C.gold}>— Security & Data</SectionLabel>
+              <h2 style={{
+                fontFamily:F.display, fontSize: isMobile ? 36 : 'clamp(36px,4vw,64px)',
+                color:C.text, letterSpacing:'0.06em', margin:'0 0 24px', lineHeight:1,
+              }}>YOUR CAMPAIGN'S DATA STAYS YOURS.</h2>
+              <p style={{ fontFamily:F.body, fontSize:17, color:C.muted, lineHeight:1.8, margin:'0 0 18px' }}>
+                Every record belongs to a single campaign — opposition research, donor
+                lists, message drafts, audit history — and stays there. Nothing crosses
+                lines, ever. Role-based access controls who can do what.
+              </p>
+              <p style={{ fontFamily:F.body, fontSize:17, color:C.muted, lineHeight:1.8, margin:'0 0 0' }}>
+                Every sensitive action lands on the audit log. Monthly AI budget caps
+                prevent runaway spend before it starts. Abuse protections and hardened
+                defaults ship across the platform — not as a paid add-on.
+              </p>
+            </div>
+            {/* Security pillars */}
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:1, background:C.border, border:`1px solid ${C.border}` }}>
+              {[
+                { label:'WALLED OFF',    copy:'Your records, no one else\'s.' },
+                { label:'AUDIT LOG',     copy:'Every sensitive action, timestamped.' },
+                { label:'ROLE-BASED',    copy:'Access controls for every staffer.' },
+                { label:'PROTECTED',     copy:'Spend caps and abuse guards, surfaced in-app.' },
+              ].map((p, i) => (
+                <div key={i} style={{ background:C.bg, padding: isMobile ? '24px 20px' : '28px 24px', borderTop:`2px solid ${C.gold}` }}>
+                  <div style={{ fontFamily:F.mono, fontSize:13, color:C.gold, letterSpacing:'0.12em', marginBottom:10 }}>{p.label}</div>
+                  <div style={{ fontFamily:F.body, fontSize:15, color:C.muted, lineHeight:1.6 }}>{p.copy}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       <CTABanner navigate={navigate} />
     </div>
   );
@@ -688,8 +727,8 @@ function FeaturesPage({ navigate }) {
     {
       num:'05', name:'Pipeline & Node Editor',
       headline:'WATCH THE BRIEF GET BUILT — AND TUNE IT LIVE.',
-      desc:'An animated pipeline shows every stage from cron to deliver, with live status and per-run cost. Tune the system prompt, model, and temperature in the Editor and stream a test run before saving.',
-      bullets:['Cron → fetch → tag → AI → save → deliver','Live status polling and per-run cost','▶ Run Now to trigger an immediate run','Live-stream a test run before saving'],
+      desc:'An animated pipeline shows every stage from trigger to deliver, with live status and per-run cost. Tune the system prompt, model, and temperature in the Editor and stream a test run before saving.',
+      bullets:['Trigger → fetch → tag → AI → save → deliver','Live status polling and per-run cost','▶ Run Now to trigger an immediate run','Live-stream a test run before saving'],
     },
     {
       num:'06', name:'CRM',
@@ -701,13 +740,13 @@ function FeaturesPage({ navigate }) {
       num:'07', name:'Tasks',
       headline:'THE TEAM KNOWS THE PLAY.',
       desc:'Assign action items with priority, status, owner, and due date — without leaving the app. No separate project manager required, no extra Slack thread, no excuses.',
-      bullets:['Priority, status, assignee, and due date','Scoped to your campaign tenant','Roles: Viewer / Staff / Admin / Superadmin','Audit trail on every change'],
+      bullets:['Priority, status, assignee, and due date','Stays inside your campaign','Role-based access for every staffer','Audit trail on every change'],
     },
     {
-      num:'08', name:'Multi-Tenant & Governance',
+      num:'08', name:'Multi-Campaign & Governance',
       headline:'MULTI-CAMPAIGN BY DESIGN. AUDITED BY DEFAULT.',
-      desc:'Every record is scoped to a campaign — nothing about the candidate, district, or branding is hardcoded. Monthly AI budget caps, a full audit log, and rate-limit guards keep spend and access in line.',
-      bullets:['Per-tenant config: thresholds, channels, sources','Monthly AI budget caps surfaced in-app','Audit log on every sensitive action','Rate-limit guards with 429 / 402 banners'],
+      desc:'Every record belongs to a single campaign — nothing about the candidate, district, or branding is hardcoded. Monthly AI budget caps, a full audit log, and abuse guards keep spend and access in line.',
+      bullets:['Per-campaign config: thresholds, channels, sources','Monthly AI budget caps surfaced in-app','Audit log on every sensitive action','Abuse and spend guards, surfaced in-app'],
     },
   ];
 
@@ -790,7 +829,7 @@ function FeaturesPage({ navigate }) {
           <div style={{ fontFamily:F.mono, fontSize:13, color:C.accent }}>▶ RUN NOW</div>
         </div>
         {[
-          { stage:'CRON',    detail:'06:00 AM',                 status:'done' },
+          { stage:'TRIGGER', detail:'06:00 AM',                 status:'done' },
           { stage:'FETCH',   detail:'18 sources · 142 stories', status:'done' },
           { stage:'TAG',     detail:'Haiku · grouped',          status:'done' },
           { stage:'AI',      detail:'Sonnet · drafting',        status:'live' },
@@ -833,7 +872,7 @@ function FeaturesPage({ navigate }) {
           </div>
         ))}
       </div>,
-      // 08 · Multi-Tenant & Governance — audit log + budget meter
+      // 08 · Multi-Campaign & Governance — audit log + budget meter
       <div style={base}>
         <div style={{ fontFamily:F.mono, fontSize:13, color:C.accent, marginBottom:14, letterSpacing:'0.1em' }}>AUDIT LOG · LAST 24H</div>
         {[['06:14','M. Chen','Approved rapid-response draft'],['09:02','J. Walsh','Edited brief schedule (06:00 → 06:30)'],['11:48','Admin','Updated AI budget cap → $400/mo']].map(([t,who,what], i) => (
@@ -892,6 +931,27 @@ function FeaturesPage({ navigate }) {
           </div>
         </section>
       ))}
+
+      {/* Security & Data */}
+      <section style={{ padding: isMobile ? '64px 24px' : '96px 64px', background:C.surface, borderBottom:`1px solid ${C.border}` }}>
+        <div style={{ maxWidth:1280, margin:'0 auto', display:'grid', gridTemplateColumns: isSmall ? '1fr' : '1fr 1fr', gap: isSmall ? 28 : 80, alignItems:'center' }}>
+          <div>
+            <SectionLabel color={C.gold}>— Security & Data</SectionLabel>
+            <h2 style={{ fontFamily:F.display, fontSize: isMobile ? 36 : 'clamp(36px,4vw,56px)', color:C.text, letterSpacing:'0.06em', margin:0, lineHeight:1.05 }}>
+              YOUR DATA. YOUR CAMPAIGN. YOUR LOG.
+            </h2>
+          </div>
+          <div style={{ borderLeft: isSmall ? 'none' : `1px solid ${C.border}`, paddingLeft: isSmall ? 0 : 32 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:14 }}>
+              <span style={{ width:8, height:8, background:C.gold, boxShadow:`0 0 10px ${C.gold}` }} />
+              <span style={{ fontFamily:F.mono, fontSize:13, color:C.gold, letterSpacing:'0.1em', textTransform:'uppercase' }}>Secured by default</span>
+            </div>
+            <p style={{ fontFamily:F.body, fontSize:17, color:C.muted, lineHeight:1.7, margin:0 }}>
+              Your campaign's records — opposition research, donor lists, audit history — stay inside your campaign and never cross to another. Role-based access. A full audit log. Abuse and spend guards across the platform — by default, not by upgrade.
+            </p>
+          </div>
+        </div>
+      </section>
 
       {/* Still shipping */}
       <section style={{ padding: isMobile ? '56px 24px' : '80px 64px', background:C.bg, borderBottom:`1px solid ${C.border}` }}>
@@ -1141,7 +1201,7 @@ function HowItWorksPage({ navigate }) {
                 SETUP IN ONE DAY. RUNNING BY MORNING.
               </h2>
               <p style={{ fontFamily:F.body, fontSize:17, color:C.muted, lineHeight:1.8, margin:'0 0 32px' }}>
-                No IT department required. Your campaign gets its own tenant, you tune the settings that matter, and your first brief lands the next morning.
+                No IT department required. Your campaign gets its own walled-off workspace, you tune the settings that matter, and your first brief lands the next morning.
               </p>
               <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
                 {['Invite-based onboarding — your team gets access same day','No IT required — browser-based PWA, zero install','Pipeline configured and brief running by Day 1'].map((item, i) => (
@@ -1224,7 +1284,7 @@ function AboutPage({ navigate }) {
                 The tools campaigns reach for — Notion, Airtable, Monday, Slack — weren't built for this. They require constant maintenance, break under pressure, and scatter information across a dozen tabs.
               </p>
               <p style={{ fontFamily:F.body, fontSize:17, color:C.muted, lineHeight:1.85, margin:'0 0 40px' }}>
-                Campaign Ops Agent was built from the ground up for political operations — AI-first and multi-tenant by design. One screen, one login, everything your team needs to move fast, stay on message, and run a tighter race.
+                Campaign Ops Agent was built from the ground up for political operations — AI-first, with every campaign walled off by design. One screen, one login, everything your team needs to move fast, stay on message, and run a tighter race.
               </p>
               <button onClick={() => navigate('request-access')} style={{
                 background:C.accent, color:'#fff', border:'none', padding:'14px 32px',
@@ -1257,22 +1317,30 @@ function AboutPage({ navigate }) {
       {/* Values strip */}
       <section style={{ borderTop:`2px solid ${C.gold}`, borderBottom:`1px solid ${C.border}`, background:C.surface }}>
         <div style={{ maxWidth:1280, margin:'0 auto', padding:`0 ${isMobile ? 24 : 64}px` }}>
-          <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)' }}>
-            {[
+          {(() => {
+            const values = [
               { label:'DIRECT',      copy:'No fluff. No startup language. No "revolutionize." Campaigns don\'t have time for it.' },
               { label:'OPERATIONAL', copy:'Built around how campaigns actually work, not how a product manager thinks they work.' },
               { label:'FAST',        copy:'Every feature is designed for speed. Drafts in seconds. Briefs before the first call.' },
-            ].map((v, i) => (
-              <div key={i} style={{
-                padding: isMobile ? '36px 0' : '48px 40px',
-                borderRight: !isMobile && i<2 ? `1px solid ${C.border}` : 'none',
-                borderBottom: isMobile && i<2 ? `1px solid ${C.border}` : 'none',
-              }}>
-                <div style={{ fontFamily:F.mono, fontSize:13, color:C.accent, letterSpacing:'0.15em', marginBottom:14 }}>{v.label}</div>
-                <div style={{ fontFamily:F.body, fontSize:16, color:C.muted, lineHeight:1.7 }}>{v.copy}</div>
+              { label:'SECURE',      copy:'Your data stays in your campaign. Role-based access, audit log on every sensitive action — by default, not by upgrade.' },
+            ];
+            const last = values.length - 1;
+            const cols = isMobile ? 1 : isTablet ? 2 : 4;
+            return (
+              <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2,1fr)' : 'repeat(4,1fr)' }}>
+                {values.map((v, i) => (
+                  <div key={i} style={{
+                    padding: isMobile ? '36px 0' : isTablet ? '40px 32px' : '48px 32px',
+                    borderRight: !isMobile && ((i+1) % cols !== 0) ? `1px solid ${C.border}` : 'none',
+                    borderBottom: !isMobile && isTablet && i<2 ? `1px solid ${C.border}` : (isMobile && i<last) ? `1px solid ${C.border}` : 'none',
+                  }}>
+                    <div style={{ fontFamily:F.mono, fontSize:13, color: v.label==='SECURE' ? C.gold : C.accent, letterSpacing:'0.15em', marginBottom:14 }}>{v.label}</div>
+                    <div style={{ fontFamily:F.body, fontSize:16, color:C.muted, lineHeight:1.7 }}>{v.copy}</div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            );
+          })()}
         </div>
       </section>
 
