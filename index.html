@@ -346,7 +346,7 @@ function CTABanner({ navigate }) {
         <p style={{
           fontFamily:F.mono, fontSize:14, letterSpacing:'0.06em',
           color:'rgba(255,255,255,0.85)', margin:'0 auto 32px', maxWidth:560, lineHeight:1.6,
-        }}>Pricing depends on cycle, race size, and needs.</p>
+        }}>Pricing depends on cycle, race size, and needs. <span onClick={() => navigate('request-access')} style={{ color:'#fff', borderBottom:'1px solid rgba(255,255,255,0.6)', cursor:'pointer' }}>Contact us</span> for a quote.</p>
         <button onClick={() => navigate('request-access')} style={{
           background:'#fff', color:C.accent, border:'none',
           padding: isMobile ? '16px 64px' : '16px 40px',
