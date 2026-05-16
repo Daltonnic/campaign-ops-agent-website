@@ -1434,6 +1434,10 @@ function RequestAccessPage({ navigate }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!form.name || !form.email || !form.campaign) return;
+    // TODO: Wire to Resend (reuse the existing app account from daltonnic/campaign-ops).
+    // The form currently drops every submission on the floor — `submitted` is the only
+    // side effect. Resend's API key can't ship in the browser bundle, so this needs a
+    // small serverless endpoint (Cloudflare Worker / Vercel function) in front.
     setSubmitted(true);
   };
 
